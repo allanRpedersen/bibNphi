@@ -35,11 +35,16 @@ class BookController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->getDoctrine()->getManager();
+			
+			dump($book);
+
             $entityManager->persist($book);
             $entityManager->flush();
+			
+			dd($book);
 
-            return $this->redirectToRoute('book_index');
+			return $this->redirectToRoute('book_index');
         }
 
         return $this->render('book/new.html.twig', [

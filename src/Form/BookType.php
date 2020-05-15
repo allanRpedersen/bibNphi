@@ -15,18 +15,24 @@ class BookType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-			->add('title')
+            ->add('title')
+            ->add('summary')
+			->add('publishedYear')
 			->add('author', EntityType::class, [
 				'class' => Author::class,
 				'choice_label' => 'lastName'
 			])
-            ->add('summary')
-			->add('publishedYear')
 			->add('odtBookFile', VichFileType::class, [
 				'label' => 'fichier odt',
+				'allow_delete' => false,
+				// 'download_label' => true,
 				'required' => true
 			])
-            //->add('author')
+
+            // ->add('odtBookName')
+            // ->add('odtBookSize')
+            // ->add('updatedAt')
+            // ->add('author')
         ;
     }
 

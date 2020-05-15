@@ -12,6 +12,9 @@
                 <th>Title</th>
                 <th>Summary</th>
                 <th>PublishedYear</th>
+                {# <th>OdtBookName</th>
+                <th>OdtBookSize</th>
+                <th>UpdatedAt</th> #}
                 <th>actions</th>
             </tr>
         </thead>
@@ -21,7 +24,10 @@
                 <td>{{ book.id }}</td>
                 <td>{{ book.title }}</td>
                 <td>{{ book.summary }}</td>
-                <td>{{ book.publishedYear ? book.publishedYear|date('Y-m-d') : '' }}</td>
+                <td>{{ book.publishedYear }}</td>
+                <td>{{ book.odtBookName }}</td>
+                <td>{{ book.odtBookSize }}</td>
+                {# <td>{{ book.updatedAt ? book.updatedAt|date('Y-m-d H:i:s') : '' }}</td> #}
                 <td>
                     <a href="{{ path('book_show', {'id': book.id}) }}">show</a>
                     <a href="{{ path('book_edit', {'id': book.id}) }}">edit</a>
@@ -29,7 +35,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="8">no records found</td>
             </tr>
         {% endfor %}
         </tbody>

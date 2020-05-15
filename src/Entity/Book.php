@@ -2,12 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\BookRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\Author;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\File\File;
+use Doctrine\Common\Collections\ArrayCollection;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+
 
 /**
  * @ORM\Entity(repositoryClass=BookRepository::class)
@@ -33,15 +34,16 @@ class Book
     private $summary;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\ManyToOne(targetEntity=Author::class, inversedBy="books")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $author;
+
+    /**
+     * @ORM\Column(type="string", length=11, nullable=true)
      */
     private $publishedYear;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Author::class, inversedBy="books")
-     */
-	private $author;
-	
 	    /**
      * NOTE: This is not a mapped field of entity metadata, just a simple property.
      * 
@@ -73,12 +75,11 @@ class Book
     private $updatedAt;
 
 
+	//
+	//
+	//
 
-    public function __construct()
-    {
-        $this->author = new ArrayCollection();
-    }
-
+	
     public function getId(): ?int
     {
         return $this->id;
@@ -108,44 +109,30 @@ class Book
         return $this;
     }
 
-    public function getPublishedYear(): ?\DateTimeInterface
+    public function getAuthor(): ?Author
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?Author $author): self
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    public function getPublishedYear(): ?string
     {
         return $this->publishedYear;
     }
 
-    public function setPublishedYear(?\DateTimeInterface $publishedYear): self
+    public function setPublishedYear(?string $publishedYear): self
     {
         $this->publishedYear = $publishedYear;
 
         return $this;
     }
 
-    /**
-     * @return Collection|Author[]
-     */
-    public function getAuthor(): Collection
-    {
-        return $this->author;
-    }
-
-    public function addAuthor(Author $author): self
-    {
-        if (!$this->author->contains($author)) {
-            $this->author[] = $author;
-        }
-
-        return $this;
-    }
-
-    public function removeAuthor(Author $author): self
-    {
-        if ($this->author->contains($author)) {
-            $this->author->removeElement($author);
-        }
-
-        return $this;
-	}
-	
 	/**
      * If manually uploading a file (i.e. not using Symfony Form) ensure an instance
      * of 'UploadedFile' is injected into this setter to trigger the update. If this
@@ -190,5 +177,6 @@ class Book
     {
         return $this->odtBookSize;
     }
+
 
 }

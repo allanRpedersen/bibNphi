@@ -30,12 +30,12 @@ class Author
     private $lastName;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\Column(type="string", length=11, nullable=true)
      */
     private $birthYear;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\Column(type="string", length=11, nullable=true)
      */
     private $deathYear;
 
@@ -50,9 +50,16 @@ class Author
     private $content;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Book::class, mappedBy="author")
+     * @ORM\OneToMany(targetEntity=Book::class, mappedBy="author", orphanRemoval=true)
      */
     private $books;
+
+
+
+
+	//
+	// Getters / Setters 
+	//
 
     public function __construct()
     {
@@ -136,6 +143,35 @@ class Author
         return $this;
     }
 
+    // /**
+    //  * @return Collection|Book[]
+    //  */
+    // public function getBooks(): Collection
+    // {
+    //     return $this->books;
+    // }
+
+    // public function addBook(Book $book): self
+    // {
+    //     if (!$this->books->contains($book)) {
+    //         $this->books[] = $book;
+    //         $book->addAuthor($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    // public function removeBook(Book $book): self
+    // {
+    //     if ($this->books->contains($book)) {
+    //         $this->books->removeElement($book);
+    //         $book->removeAuthor($this);
+    //     }
+
+    //     return $this;
+    // }
+
+
     /**
      * @return Collection|Book[]
      */
@@ -148,7 +184,7 @@ class Author
     {
         if (!$this->books->contains($book)) {
             $this->books[] = $book;
-            $book->addAuthor($this);
+            $book->setAuthor($this);
         }
 
         return $this;
@@ -158,9 +194,13 @@ class Author
     {
         if ($this->books->contains($book)) {
             $this->books->removeElement($book);
-            $book->removeAuthor($this);
+            // set the owning side to null (unless already changed)
+            if ($book->getAuthor() === $this) {
+                $book->setAuthor(null);
+            }
         }
 
         return $this;
     }
-}
+
+    }

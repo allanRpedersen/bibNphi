@@ -21,8 +21,20 @@
             </tr>
             <tr>
                 <th>PublishedYear</th>
-                <td>{{ book.publishedYear ? book.publishedYear|date('Y-m-d') : '' }}</td>
+                <td>{{ book.publishedYear }}</td>
             </tr>
+            <tr>
+                <th>OdtBookName</th>
+                <td>{{ book.odtBookName }}</td>
+            </tr>
+            <tr>
+                <th>OdtBookSize</th>
+                <td>{{ book.odtBookSize }}</td>
+            </tr>
+            {# <tr>
+                <th>UpdatedAt</th>
+                <td>{{ book.updatedAt ? book.updatedAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr> #}
         </tbody>
     </table>
 

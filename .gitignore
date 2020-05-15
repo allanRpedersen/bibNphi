@@ -1,3 +1,5 @@
+###> 
+/public/books
 
 ###> symfony/framework-bundle ###
 /.env.local
