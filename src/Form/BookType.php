@@ -23,10 +23,12 @@ class BookType extends AbstractType
 				'choice_label' => 'lastName'
 			])
 			->add('odtBookFile', VichFileType::class, [
-				'label' => 'fichier odt',
+				'label' => 'Document au format odt',
+				'required' => true,
 				'allow_delete' => false,
-				// 'download_label' => true,
-				'required' => true
+				'download_label' => static function (Book $book) {
+					return $book->getTitle();
+				},
 			])
 
             // ->add('odtBookName')

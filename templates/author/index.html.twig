@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Author index{% endblock %}
+{% block title %}Les auteurs{% endblock %}
 
 {% block body %}
     <h1>Author index</h1>
@@ -8,7 +8,7 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
+                {# <th>Id</th> #}
                 <th>FirstName</th>
                 <th>LastName</th>
                 <th>BirthYear</th>
@@ -21,16 +21,16 @@
         <tbody>
         {% for author in authors %}
             <tr>
-                <td>{{ author.id }}</td>
+                {# <td>{{ author.id }}</td> #}
                 <td>{{ author.firstName }}</td>
                 <td>{{ author.lastName }}</td>
-                <td>{{ author.birthYear ? author.birthYear|date('Y-m-d') : '' }}</td>
-                <td>{{ author.deathYear ? author.deathYear|date('Y-m-d') : '' }}</td>
+                <td>{{ author.birthYear }}</td>
+                <td>{{ author.deathYear }}</td>
                 <td>{{ author.summary }}</td>
                 <td>{{ author.content }}</td>
                 <td>
-                    <a href="{{ path('author_show', {'id': author.id}) }}">show</a>
-                    <a href="{{ path('author_edit', {'id': author.id}) }}">edit</a>
+                    <a href="{{ path('author_show', {'slug': author.slug}) }}">show</a>
+                    <a href="{{ path('author_edit', {'slug': author.slug}) }}">edit</a>
                 </td>
             </tr>
         {% else %}

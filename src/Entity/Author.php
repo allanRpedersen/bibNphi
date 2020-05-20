@@ -3,12 +3,14 @@
 namespace App\Entity;
 
 use App\Repository\AuthorRepository;
+use Cocur\Slugify\Slugify;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=AuthorRepository::class)
+ * @ORM\HasLifecycleCallbacks
  */
 class Author
 {
@@ -28,6 +30,11 @@ class Author
      * @ORM\Column(type="string", length=255)
      */
     private $lastName;
+
+	/**
+	 * @ORM\Column(type="string", length=255)
+	 */
+	private $slug;
 
     /**
      * @ORM\Column(type="string", length=11, nullable=true)
@@ -55,16 +62,41 @@ class Author
     private $books;
 
 
-
-
 	//
-	// Getters / Setters 
 	//
+	//
+
+	
+	/**
+	 * Initialisation du slug avant le persist ..
+	 * 
+	 * @ORM\PrePersist
+	 * @ORM\PreUpdate
+	 *
+	 * @return void
+	 */
+	public function InitializeSlug()
+	{
+		// if ( empty($this->slug) ){
+					
+				// le slug est systèmatiquement recalculé ..
+
+				$slugify = new Slugify();
+				$this->slug = $slugify->slugify($this->firstName . '-' . $this->lastName );
+
+				// }
+	}
 
     public function __construct()
     {
         $this->books = new ArrayCollection();
     }
+
+
+
+	//
+	// Getters / Setters 
+	//
 
     public function getId(): ?int
     {
@@ -95,24 +127,37 @@ class Author
         return $this;
     }
 
-    public function getBirthYear(): ?\DateTimeInterface
+	public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+
+    public function getBirthYear(): ?string
     {
         return $this->birthYear;
     }
 
-    public function setBirthYear(?\DateTimeInterface $birthYear): self
+    public function setBirthYear(?string $birthYear): self
     {
         $this->birthYear = $birthYear;
 
         return $this;
     }
 
-    public function getDeathYear(): ?\DateTimeInterface
+    public function getDeathYear(): ?string
     {
         return $this->deathYear;
     }
 
-    public function setDeathYear(?\DateTimeInterface $deathYear): self
+    public function setDeathYear(?string $deathYear): self
     {
         $this->deathYear = $deathYear;
 
@@ -142,34 +187,6 @@ class Author
 
         return $this;
     }
-
-    // /**
-    //  * @return Collection|Book[]
-    //  */
-    // public function getBooks(): Collection
-    // {
-    //     return $this->books;
-    // }
-
-    // public function addBook(Book $book): self
-    // {
-    //     if (!$this->books->contains($book)) {
-    //         $this->books[] = $book;
-    //         $book->addAuthor($this);
-    //     }
-
-    //     return $this;
-    // }
-
-    // public function removeBook(Book $book): self
-    // {
-    //     if ($this->books->contains($book)) {
-    //         $this->books->removeElement($book);
-    //         $book->removeAuthor($this);
-    //     }
-
-    //     return $this;
-    // }
 
 
     /**
@@ -203,4 +220,4 @@ class Author
         return $this;
     }
 
-    }
+}

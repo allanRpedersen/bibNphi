@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Book index{% endblock %}
+{% block title %}Les oeuvres{% endblock %}
 
 {% block body %}
     <h1>Book index</h1>
@@ -29,8 +29,8 @@
                 <td>{{ book.odtBookSize }}</td>
                 {# <td>{{ book.updatedAt ? book.updatedAt|date('Y-m-d H:i:s') : '' }}</td> #}
                 <td>
-                    <a href="{{ path('book_show', {'id': book.id}) }}">show</a>
-                    <a href="{{ path('book_edit', {'id': book.id}) }}">edit</a>
+                    <a href="{{ path('book_show', {'slug': book.slug}) }}">show</a>
+                    <a href="{{ path('book_edit', {'slug': book.slug}) }}">edit</a>
                 </td>
             </tr>
         {% else %}

@@ -49,7 +49,7 @@ class AuthorController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="author_show", methods={"GET"})
+     * @Route("/{slug}", name="author_show", methods={"GET"})
      */
     public function show(Author $author): Response
     {
@@ -59,7 +59,7 @@ class AuthorController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="author_edit", methods={"GET","POST"})
+     * @Route("/{slug}/edit", name="author_edit", methods={"GET","POST"})
      */
     public function edit(Request $request, Author $author): Response
     {
@@ -79,7 +79,7 @@ class AuthorController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="author_delete", methods={"DELETE"})
+     * @Route("/{slug}", name="author_delete", methods={"DELETE"})
      */
     public function delete(Request $request, Author $author): Response
     {

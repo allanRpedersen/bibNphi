@@ -3,15 +3,18 @@
 namespace App\Entity;
 
 use App\Entity\Author;
+use Cocur\Slugify\Slugify;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\File\File;
 use Doctrine\Common\Collections\ArrayCollection;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 /**
  * @ORM\Entity(repositoryClass=BookRepository::class)
+ * @ORM\HasLifecycleCallbacks
  * @Vich\Uploadable
  */
 class Book
@@ -26,7 +29,12 @@ class Book
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $title;
+	private $title;
+	
+	/**
+	 * @ORM\Column(type="string", length=255)
+	 */
+	private $slug;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -47,7 +55,14 @@ class Book
 	    /**
      * NOTE: This is not a mapped field of entity metadata, just a simple property.
      * 
-     * @Vich\UploadableField(mapping="books", fileNameProperty="odtBookName", size="odtBookSize")
+	 * @Assert\File(
+     *     mimeTypes = {"application/vnd.oasis.opendocument.text"},
+     *     mimeTypesMessage = "Veuillez indiquer un document au format ODT !"
+     * )
+     * @Vich\UploadableField(mapping="books",
+	 * 							fileNameProperty="odtBookName",
+	 * 							size="odtBookSize",
+	 * 							mimeType="bookMimeType")
      * 
      * @var File|null
      */
@@ -74,10 +89,36 @@ class Book
      */
     private $updatedAt;
 
+	/**
+	 * Undocumented variable
+	 *
+	 */
+	private $bookMimeType;
+	//
+	//
+	//
 
-	//
-	//
-	//
+	
+	/**
+	 * Initialisation du slug avant le persist ..
+	 * 
+	 * @ORM\PrePersist
+	 * @ORM\PreUpdate
+	 *
+	 * @return void
+	 */
+	public function InitializeSlug()
+	{
+		// if ( empty($this->slug) ){
+					
+				// le slug est systèmatiquement recalculé ..
+
+				$slugify = new Slugify();
+				$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
+
+				// }
+	}
+
 
 	
     public function getId(): ?int
@@ -96,6 +137,19 @@ class Book
 
         return $this;
     }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
 
     public function getSummary(): ?string
     {
@@ -178,5 +232,14 @@ class Book
         return $this->odtBookSize;
     }
 
+	public function setBookMimeType(?string $bookMimeType): void
+    {
+        $this->bookMimeType = $bookMimeType;
+    }
 
+    public function getBookMimeType(): ?string
+    {
+        return $this->bookMimeType;
+    }
+    
 }
