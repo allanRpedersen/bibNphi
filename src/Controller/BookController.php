@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Form\BookType;
+use App\Entity\BookSentence;
+use App\Entity\BookParagraph;
 use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +21,22 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  */
 class BookController extends AbstractController
 {
+
+	/**
+	 * XML parser
+	 *
+	 */
+	private $parser;
+	private $insideNote, $counter, $text, $isNoteBody, $noteBody, $noteCitation, $noteCollection;
+	private $nbBookSentences, $nbBookParagraphs;
+	private $book;
+
+
+	public function __construct()
+	{
+
+	}
+
     /**
      * @Route("/", name="book_index", methods={"GET"})
      */
@@ -48,7 +66,7 @@ class BookController extends AbstractController
             $entityManager->persist($book);
 			$entityManager->flush();
 			
-			$localPath = $uploaderHelper->asset($book, 'odtBookFile'); // $localPath is set once te entity is persisted ..
+			$localPath = $uploaderHelper->asset($book, 'odtBookFile'); // $localPath is set once the entity is persisted ..
 			$fileName = \pathinfo($localPath, PATHINFO_FILENAME);
 			$fileExt = \pathinfo($localPath, PATHINFO_EXTENSION);
 
@@ -64,8 +82,12 @@ class BookController extends AbstractController
 			if (!$errCode){
 				passthru('unzip '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
 			}
-			dd('blik', $errCode);
-			
+
+			//
+			// xml parsing !
+			$this->book = $book;
+			$this->parseXmlContent($dirName . '/content.xml');
+
 			return $this->redirectToRoute('book_index');
         }
 
@@ -93,7 +115,7 @@ class BookController extends AbstractController
 
 		$odtBookSize = $book->getOdtBookSize(); // set if exists
 
-		dump($book);
+		// dump($book);
 
 		$localPath = $uploaderHelper->asset($book, 'odtBookFile');
 		$fileName = \pathinfo($localPath, PATHINFO_FILENAME);
@@ -103,20 +125,20 @@ class BookController extends AbstractController
 		$fileName = $dirName . '.' . $fileExt;
 
 		$form = $this->createFormBuilder($book)
-								->add('title')
-								->add('summary')
-								->add('publishedYear')
-								->add('author', EntityType::class, [
-									'class' => Author::class,
-									'choice_label' => 'lastName'
-								])
-								->add('odtBookFile', VichFileType::class, [
-									'label' => 'Document au format odt',
-									'required' => false,
-									'allow_delete' => false,
-									'download_label' => new PropertyPath('odtBookName')
-									
-									// static function (Book $book) {
+					->add('title')
+					->add('summary')
+					->add('publishedYear')
+					->add('author', EntityType::class, [
+						'class' => Author::class,
+						'choice_label' => 'lastName'
+					])
+					->add('odtBookFile', VichFileType::class, [
+						'label' => 'Document au format odt',
+						'required' => false,
+						'allow_delete' => false,
+						'download_label' => new PropertyPath('odtBookName')
+						
+						// static function (Book $book) {
 									// 	return $book->getTitle();
 									// },
 								])
@@ -144,7 +166,6 @@ class BookController extends AbstractController
 				// unix cmd
 				// delete previous directory recursive
 				passthru('rm -r ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
-				dump($errCode);
 				
 				// then create new document directory
 				$localPath = $uploaderHelper->asset($book, 'odtBookFile');
@@ -154,19 +175,20 @@ class BookController extends AbstractController
 				$dirName = 'books/' . $fileName; // to rip leading slash !?
 				$fileName = $dirName . '.' . $fileExt;
 		
-
 				passthru('mkdir ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
-				dump($errCode);
 				
 				// and unzip in it !
 				passthru('unzip ' . $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
-				dump($errCode);
 
 				if (!$errCode){}
 
+				//
+				// xml parsing !!
+				$this->book = $book;
+				$this->parseXmlContent($dirName.'/content.xml');
+
 			}
 						
-
             return $this->redirectToRoute('book_index');
         }
 
@@ -188,5 +210,195 @@ class BookController extends AbstractController
         }
 
         return $this->redirectToRoute('book_index');
-    }
+	}
+
+
+	/**
+	 *      O D T   X M L   p a r s i n g
+	 */
+	private function start_element_handler($parser, $element, $attribs)
+	{
+
+		switch($element){
+
+			case "TEXT:P":
+				$this->counter++;
+				// dump([$element, $attribs]);
+				break;
+			
+			case "TEXT:SPAN":
+			case "DRAW:FRAME" ;
+			case "DRAW:IMAGE" ;
+				// dump([$element, $attribs]);
+				break;
+			
+			case "TEXT:NOTE" ;
+				$this->text .= '(#';
+				$this->insideNote = true;
+				break;
+				
+			case "TEXT:NOTE-CITATION" ;
+				// dump([$element, $attribs]);
+				break;
+				
+			case "TEXT:NOTE-BODY" ;
+				$this->isNoteBody = true;
+				// dump([$element, $attribs]);
+				break;
+			
+		} 
+	}
+
+	private function end_element_handler($parser, $element)
+	{
+		switch($element){
+			case "TEXT:P" ;
+				if (!$this->insideNote){
+
+					$this->handleBookParagraph($this->text);
+					$this->text = '';
+
+					//
+					// then get notes for the paragraph
+					if (!empty($this->noteCollection)){
+						foreach($this->noteCollection as $note){
+							echo('<p>' . $note . '</p>');
+						}
+						$this->noteCollection = [];
+					}
+
+				}
+				break;
+
+			case "TEXT:SPAN" ;
+				break;
+
+			case "TEXT:NOTE" ;
+				// catch the note citation
+				preg_match('/[0-9]+$/', $this->text, $matches);
+				$this->noteCitation = $matches[0];
+
+				//
+				$this->noteCollection[] = '<p>[note#' . $this->noteCitation . ') ' . $this->noteBody . '#]</p>';
+				
+				//
+				$this->text .= ')';
+				$this->insideNote = false;
+				$this->noteBody = '';
+				break;
+
+			case "TEXT:NOTE-CITATION" ;
+				break;
+
+			case "TEXT:NOTE-BODY" ;
+				// 
+				$this->isNoteBody = false;
+				break;
+
+			}
+
+	}
+
+	private function character_data_handler($parser, $data)
+	{
+		if ($this->isNoteBody)
+			$this->noteBody .= $data;
+		else
+			$this->text .= $data;
+		
+	}
+
+	/**
+	 * Parse the xml file 'content.xml' which contains an odt document.
+	 *
+	 * @param string $fileName
+	 * @return void
+	 */
+	private function parseXmlContent( string $fileName )
+	{
+		// various initialization
+		$this->noteCollection = [];
+		$this->text = '';
+		$this->nbBookSentences = 0;
+		$this->nbBookParagraphs = 0;
+
+		dump('1st get max_execution_time', ini_get('max_execution_time'));
+		ini_set('max_execution_time', '0');
+		dump('2nd get max_execution_time', ini_get('max_execution_time'));
+		//
+		//
+		$fh = @fopen($fileName, 'rb');
+		if ( $fh ){
+			$this->parser = xml_parser_create();
+			$this->counter = 0;
+
+			//
+			// set up the handlers
+			xml_set_element_handler($this->parser, [$this, "start_element_handler"], [$this, "end_element_handler"]);
+			xml_set_character_data_handler($this->parser, [$this, "character_data_handler"]);
+
+			// fread vs fgets !! ??
+			while (($buffer = fread($fh, 16384)) != false) {
+				xml_parse($this->parser, $buffer);
+			}
+			xml_parse($this->parser, '', true); // finalize parsing
+			xml_parser_free($this->parser);
+
+			if (!feof($fh)) {
+				echo "Erreur: fgets() a échoué\n";
+			}
+
+			fclose($fh);
+
+			// dd($this->nbBookParagraphs, $this->nbBookSentences);
+		}
+		else {
+			// error on file open 
+		}
+
+		return 0;
+	}
+
+	private function handleBookParagraph($paragraph)
+	{
+		
+		if ($paragraph != ''){
+
+			$entityManager = $this->getDoctrine()->getManager();
+
+			$bookParagraph = new BookParagraph();
+			$bookParagraph->setBook($this->book);
+
+			// explode the text into array of sentences
+			//$sentences = preg_split('/[.?!;:]/', $this->text, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+			// split the paragraph using the puctuation signs [.?!]
+			// with a negative look-behind feature to exclude roman numbers (example CXI.)
+			$sentences = preg_split('/(?<![IVXLC].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
+			if ($sentences){
+				foreach ($sentences as $sentence ){
+			
+					$bookSentence = new BookSentence();
+					$bookSentence->setBookParagraph($bookParagraph);
+					$bookSentence->setContent($sentence);
+
+					// echo('<p>' . $sentence . '</p>');
+					$this->nbBookSentences++;
+					$entityManager->persist($bookSentence);
+	
+				}
+			}
+
+			//
+			//
+			// $bookParagraph->setContent($paragraph);
+			
+			$this->nbBookParagraphs++;
+			$entityManager->persist($bookParagraph);
+			$entityManager->flush();
+			
+			// echo('<p>' . $paragraph . '</p>');
+			
+		}
+	}
 }

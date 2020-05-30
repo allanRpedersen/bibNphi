@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Author;
 use Cocur\Slugify\Slugify;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\File\File;
@@ -94,6 +95,16 @@ class Book
 	 *
 	 */
 	private $bookMimeType;
+
+    /**
+     * @ORM\OneToMany(targetEntity=BookParagraph::class, mappedBy="book", orphanRemoval=true)
+     */
+    private $bookParagraphs;
+
+    public function __construct()
+    {
+        $this->bookParagraphs = new ArrayCollection();
+    }
 	//
 	//
 	//
@@ -109,14 +120,11 @@ class Book
 	 */
 	public function InitializeSlug()
 	{
-		// if ( empty($this->slug) ){
-					
-				// le slug est systèmatiquement recalculé ..
+		// if ( empty($this->slug) ){}
 
-				$slugify = new Slugify();
-				$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
-
-				// }
+		// le slug est systèmatiquement recalculé ..
+		$slugify = new Slugify();
+		$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
 	}
 
 
@@ -233,13 +241,44 @@ class Book
     }
 
 	public function setBookMimeType(?string $bookMimeType): void
-    {
-        $this->bookMimeType = $bookMimeType;
-    }
+	{
+		$this->bookMimeType = $bookMimeType;
+	}
 
     public function getBookMimeType(): ?string
     {
         return $this->bookMimeType;
+    }
+
+    /**
+     * @return Collection|BookParagraph[]
+     */
+    public function getBookParagraphs(): Collection
+    {
+        return $this->bookParagraphs;
+    }
+
+    public function addBookParagraph(BookParagraph $bookParagraph): self
+    {
+        if (!$this->bookParagraphs->contains($bookParagraph)) {
+            $this->bookParagraphs[] = $bookParagraph;
+            $bookParagraph->setBook($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBookParagraph(BookParagraph $bookParagraph): self
+    {
+        if ($this->bookParagraphs->contains($bookParagraph)) {
+            $this->bookParagraphs->removeElement($bookParagraph);
+            // set the owning side to null (unless already changed)
+            if ($bookParagraph->getBook() === $this) {
+                $bookParagraph->setBook(null);
+            }
+        }
+
+        return $this;
     }
     
 }

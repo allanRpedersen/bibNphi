@@ -3,15 +3,16 @@
 {% block title %}Les oeuvres{% endblock %}
 
 {% block body %}
-    <h1>Book index</h1>
+<div class="container mt-5">
 
+    <h1>Les oeuvres référencées</h1>
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Summary</th>
-                <th>PublishedYear</th>
+                <th>Titre</th>
+				<th>Auteur(e)</th>
+                <th>Résumé/Intro</th>
+                <th>Publié en</th>
                 {# <th>OdtBookName</th>
                 <th>OdtBookSize</th>
                 <th>UpdatedAt</th> #}
@@ -21,25 +22,26 @@
         <tbody>
         {% for book in books %}
             <tr>
-                <td>{{ book.id }}</td>
-                <td>{{ book.title }}</td>
+                <td><a href="{{ path('book_show', {'slug': book.slug}) }}">{{ book.title }}</a></td>
+				<td>{{ book.author.lastName ~' '~ book.author.firstName }}</td>
                 <td>{{ book.summary }}</td>
                 <td>{{ book.publishedYear }}</td>
-                <td>{{ book.odtBookName }}</td>
+                {# <td>{{ book.odtBookName }}</td>
                 <td>{{ book.odtBookSize }}</td>
-                {# <td>{{ book.updatedAt ? book.updatedAt|date('Y-m-d H:i:s') : '' }}</td> #}
+				<td>{{ book.updatedAt ? book.updatedAt|date('Y-m-d H:i:s') : '' }}</td> #}
                 <td>
-                    <a href="{{ path('book_show', {'slug': book.slug}) }}">show</a>
-                    <a href="{{ path('book_edit', {'slug': book.slug}) }}">edit</a>
+                    {# <a href="{{ path('book_show', {'slug': book.slug}) }}">voir</a> #}
+                    <a href="{{ path('book_edit', {'slug': book.slug}) }}">mofidier</a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="8">no records found</td>
+                <td colspan="8">( aucune oeuvre référencée :-(</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('book_new') }}">Create new</a>
+    <a type ="button" class="btn btn-info" href="{{ path('book_new') }}">Ajouter une oeuvre</a>
+</div>
 {% endblock %}
