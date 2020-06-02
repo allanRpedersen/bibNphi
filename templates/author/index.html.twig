@@ -1,20 +1,21 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Les auteurs{% endblock %}
+{% block title %}Les auteur(e)s{% endblock %}
 
 {% block body %}
-    <h1>Author index</h1>
+<div class="container mt-1">
+    <h1>Les auteur(e)s référencé(e)s</h1>
 
     <table class="table">
         <thead>
             <tr>
                 {# <th>Id</th> #}
-                <th>FirstName</th>
-                <th>LastName</th>
-                <th>BirthYear</th>
-                <th>DeathYear</th>
-                <th>Summary</th>
-                <th>Content</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Naissance</th>
+                <th>Mort</th>
+                <th>Introduction</th>
+                <th>Description</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -22,14 +23,14 @@
         {% for author in authors %}
             <tr>
                 {# <td>{{ author.id }}</td> #}
-                <td>{{ author.firstName }}</td>
                 <td>{{ author.lastName }}</td>
+                <td>{{ author.firstName }}</td>
                 <td>{{ author.birthYear }}</td>
                 <td>{{ author.deathYear }}</td>
                 <td>{{ author.summary }}</td>
                 <td>{{ author.content }}</td>
                 <td>
-                    <a href="{{ path('author_show', {'slug': author.slug}) }}">show</a>
+                    <a href="{{ path('author_show', {'slug': author.slug}) }}">détails</a>
                     <a href="{{ path('author_edit', {'slug': author.slug}) }}">edit</a>
                 </td>
             </tr>
@@ -41,5 +42,6 @@
         </tbody>
     </table>
 
-    <a href="{{ path('author_new') }}">Create new</a>
+    <a href="{{ path('author_new') }}">Ajouter une entrée</a>
+</div>
 {% endblock %}

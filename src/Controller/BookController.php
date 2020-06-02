@@ -15,6 +15,7 @@ use Vich\UploaderBundle\Form\Type\VichFileType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 /**
  * @Route("/book")
@@ -28,7 +29,7 @@ class BookController extends AbstractController
 	 */
 	private $parser;
 	private $insideNote, $counter, $text, $isNoteBody, $noteBody, $noteCitation, $noteCollection;
-	private $nbBookSentences, $nbBookParagraphs;
+	private $nbBookWords, $nbBookSentences, $nbBookParagraphs;
 	private $book;
 
 
@@ -49,6 +50,7 @@ class BookController extends AbstractController
 
     /**
      * @Route("/new", name="book_new", methods={"GET","POST"})
+	 * @IsGranted("ROLE_USER")
      */
     public function new(Request $request, UploaderHelper $uploaderHelper ): Response
     {
@@ -63,6 +65,12 @@ class BookController extends AbstractController
 			$odtBookFile = $book->getOdtBookFile();
 			$odtOriginalName = $odtBookFile->getClientOriginalName();
 
+			$book->setNbParagraphs(0)
+				->setNbSentences(0)
+				->setNbWords(0)
+				->setParsingTime(0)
+				;
+
             $entityManager->persist($book);
 			$entityManager->flush();
 			
@@ -73,11 +81,12 @@ class BookController extends AbstractController
 			$dirName = 'books/' . $fileName; // to rip leading slash !?
 			$fileName = $dirName . '.' . $fileExt;
 
-			dump($localPath, $dirName, $fileName);
+			// dump($localPath, $dirName, $fileName);
 
+			//
 			// unix cmd
 			passthru('mkdir ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
-			dump($errCode, $odtOriginalName, $localPath);
+			// dump($errCode, $odtOriginalName, $localPath);
 			
 			if (!$errCode){
 				passthru('unzip '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
@@ -86,9 +95,18 @@ class BookController extends AbstractController
 			//
 			// xml parsing !
 			$this->book = $book;
-			$this->parseXmlContent($dirName . '/content.xml');
-
-			return $this->redirectToRoute('book_index');
+			$book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
+				->setNbParagraphs($this->nbBookParagraphs)
+				->setNbSentences($this->nbBookSentences)
+				->setNbWords($this->nbBookWords)
+				;
+			
+			$entityManager->persist($book);
+			$entityManager->flush();
+			
+			return $this->redirectToRoute('book_show', [
+				'slug' => $book->getSlug()
+			]);
         }
 
         return $this->render('book/new.html.twig', [
@@ -109,6 +127,7 @@ class BookController extends AbstractController
 
     /**
      * @Route("/{slug}/edit", name="book_edit", methods={"GET","POST"})
+	 * @IsGranted("ROLE_USER")
      */
     public function edit(Request $request, Book $book, UploaderHelper $uploaderHelper): Response
     {
@@ -155,7 +174,8 @@ class BookController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-			$this->getDoctrine()->getManager()->flush();
+            $entityManager = $this->getDoctrine()->getManager();
+			$entityManager->flush();
 			
 			if (null !== $book->getOdtBookFile()){
 
@@ -185,11 +205,20 @@ class BookController extends AbstractController
 				//
 				// xml parsing !!
 				$this->book = $book;
-				$this->parseXmlContent($dirName.'/content.xml');
-
+				$book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
+					->setNbParagraphs($this->nbBookParagraphs)
+					->setNbSentences($this->nbBookSentences)
+					->setNbWords($this->nbBookWords)
+					;
+				
+				$entityManager->persist($book);
+				$entityManager->flush();
+				
 			}
 						
-            return $this->redirectToRoute('book_index');
+            return $this->redirectToRoute('book_show', [
+				'slug' => $book->getSlug()
+			]);
         }
 
         return $this->render('book/edit.html.twig', [
@@ -200,11 +229,15 @@ class BookController extends AbstractController
 
     /**
      * @Route("/{slug}", name="book_delete", methods={"DELETE"})
+	 * @IsGranted("ROLE_USER")
      */
     public function delete(Request $request, Book $book): Response
     {
         if ($this->isCsrfTokenValid('delete'.$book->getId(), $request->request->get('_token'))) {
-            $entityManager = $this->getDoctrine()->getManager();
+			$entityManager = $this->getDoctrine()->getManager();
+			
+			//
+			//
             $entityManager->remove($book);
             $entityManager->flush();
         }
@@ -221,7 +254,8 @@ class BookController extends AbstractController
 
 		switch($element){
 
-			case "TEXT:P":
+			case "TEXT:P" ;
+			case "TEXT:H" ;
 				$this->counter++;
 				// dump([$element, $attribs]);
 				break;
@@ -253,6 +287,7 @@ class BookController extends AbstractController
 	{
 		switch($element){
 			case "TEXT:P" ;
+			case "TEXT:H" ;
 				if (!$this->insideNote){
 
 					$this->handleBookParagraph($this->text);
@@ -295,6 +330,11 @@ class BookController extends AbstractController
 				$this->isNoteBody = false;
 				break;
 
+			case "TEXT:LINE-BREAK" ;
+				//
+				$this->text .= ' ';
+				break;
+
 			}
 
 	}
@@ -314,17 +354,21 @@ class BookController extends AbstractController
 	 * @param string $fileName
 	 * @return void
 	 */
-	private function parseXmlContent( string $fileName )
+	private function parseXmlContent( string $fileName ) : ?float
 	{
+		//
+		$timeStart = microtime(true);
+
 		// various initialization
 		$this->noteCollection = [];
 		$this->text = '';
+		$this->nbBookWords = 0;
 		$this->nbBookSentences = 0;
 		$this->nbBookParagraphs = 0;
 
-		dump('1st get max_execution_time', ini_get('max_execution_time'));
+		// setting no excution time out .. bbrrrr !! 
 		ini_set('max_execution_time', '0');
-		dump('2nd get max_execution_time', ini_get('max_execution_time'));
+
 		//
 		//
 		$fh = @fopen($fileName, 'rb');
@@ -350,18 +394,20 @@ class BookController extends AbstractController
 
 			fclose($fh);
 
-			// dd($this->nbBookParagraphs, $this->nbBookSentences);
 		}
 		else {
-			// error on file open 
+			return 0 ; // no parsing !!
 		}
 
-		return 0;
+		// stop timer !
+		$timeEnd = \microtime(true);
+
+		// dd($timeStart, $timeEnd, $timeEnd - $timeStart);
+		return($timeEnd - $timeStart);
 	}
 
 	private function handleBookParagraph($paragraph)
 	{
-		
 		if ($paragraph != ''){
 
 			$entityManager = $this->getDoctrine()->getManager();
@@ -385,20 +431,15 @@ class BookController extends AbstractController
 					// echo('<p>' . $sentence . '</p>');
 					$this->nbBookSentences++;
 					$entityManager->persist($bookSentence);
-	
 				}
 			}
 
-			//
-			//
-			// $bookParagraph->setContent($paragraph);
-			
+			//			
 			$this->nbBookParagraphs++;
 			$entityManager->persist($bookParagraph);
+
 			$entityManager->flush();
-			
-			// echo('<p>' . $paragraph . '</p>');
-			
 		}
 	}
+
 }

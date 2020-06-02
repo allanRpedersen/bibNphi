@@ -7,8 +7,9 @@
 <div class="container mt-5">
 	<div class="row">
 		<div class="col-md-4">
-			<h1>{{ book.title}}</h1>
-			<h3>écrit par {{ book.author.firstName ~' '~ book.author.lastName }}, publié en {{ book.publishedYear }}</h3>
+			<h1>{{ book.title }} ({{ book.parsingTime }})</h1>
+			<h3>écrit par {{ book.author.firstName ~' '~ book.author.lastName }}</h3>
+			<h4>publié en {{ book.publishedYear }}</h4>
 			<p>{{ book.summary }}</p>
 
 			<a href="{{ path('book_index') }}">back to list</a>
@@ -19,11 +20,11 @@
 		</div>
 		<div class="col-md-8">
 			{% for paragraph in book.bookParagraphs %}
-
+			<p>
 				{% for sentence in paragraph.sentences %}
-					<p>{{ sentence.content }}</p>
+				{{ sentence.content }}
 				{% endfor %}
-
+			</p>
 			{% endfor %}
 		
 		</div>

@@ -33,7 +33,7 @@ class Book
 	private $title;
 	
 	/**
-	 * @ORM\Column(type="string", length=255)
+	 * @ORM\Column(type="string", length=255, unique=true)
 	 */
 	private $slug;
 
@@ -101,6 +101,26 @@ class Book
      */
     private $bookParagraphs;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nbParagraphs;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nbSentences;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $nbWords;
+
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $parsingTime;
+
     public function __construct()
     {
         $this->bookParagraphs = new ArrayCollection();
@@ -119,13 +139,13 @@ class Book
 	 * @return void
 	 */
 	public function InitializeSlug()
-	{
-		// if ( empty($this->slug) ){}
-
-		// le slug est systèmatiquement recalculé ..
-		$slugify = new Slugify();
-		$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
-	}
+                                    	{
+                                    		// if ( empty($this->slug) ){}
+                                    
+                                    		// le slug est systèmatiquement recalculé ..
+                                    		$slugify = new Slugify();
+                                    		$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
+                                    	}
 
 
 	
@@ -241,9 +261,9 @@ class Book
     }
 
 	public function setBookMimeType(?string $bookMimeType): void
-	{
-		$this->bookMimeType = $bookMimeType;
-	}
+                                    	{
+                                    		$this->bookMimeType = $bookMimeType;
+                                    	}
 
     public function getBookMimeType(): ?string
     {
@@ -277,6 +297,54 @@ class Book
                 $bookParagraph->setBook(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getNbParagraphs(): ?int
+    {
+        return $this->nbParagraphs;
+    }
+
+    public function setNbParagraphs(int $nbParagraphs): self
+    {
+        $this->nbParagraphs = $nbParagraphs;
+
+        return $this;
+    }
+
+    public function getNbSentences(): ?int
+    {
+        return $this->nbSentences;
+    }
+
+    public function setNbSentences(int $nbSentences): self
+    {
+        $this->nbSentences = $nbSentences;
+
+        return $this;
+    }
+
+    public function getNbWords(): ?int
+    {
+        return $this->nbWords;
+    }
+
+    public function setNbWords(int $nbWords): self
+    {
+        $this->nbWords = $nbWords;
+
+        return $this;
+    }
+
+    public function getParsingTime(): ?float
+    {
+        return $this->parsingTime;
+    }
+
+    public function setParsingTime(float $parsingTime): self
+    {
+        $this->parsingTime = $parsingTime;
 
         return $this;
     }

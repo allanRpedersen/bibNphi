@@ -23,7 +23,7 @@
         {% for book in books %}
             <tr>
                 <td><a href="{{ path('book_show', {'slug': book.slug}) }}">{{ book.title }}</a></td>
-				<td>{{ book.author.lastName ~' '~ book.author.firstName }}</td>
+				<td>{{ book.author.firstName ~' '~ book.author.lastName }}</td>
                 <td>{{ book.summary }}</td>
                 <td>{{ book.publishedYear }}</td>
                 {# <td>{{ book.odtBookName }}</td>
