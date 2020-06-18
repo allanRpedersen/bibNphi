@@ -236,6 +236,9 @@ class BookController extends AbstractController
         if ($this->isCsrfTokenValid('delete'.$book->getId(), $request->request->get('_token'))) {
 			$entityManager = $this->getDoctrine()->getManager();
 			
+			foreach( $book->getBookParagraphs() as $paragraph ){
+				$book->removeBookParagraph($paragraph);
+			}
 			//
 			//
             $entityManager->remove($book);

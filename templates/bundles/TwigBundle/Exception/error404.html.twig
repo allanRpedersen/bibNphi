@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Erreur 404 - page inexistante {% endblock %}
+ 
+ {% block body %}
+	<div class="container">
+		<h1>La page que vous recherchez n\'existe pas !</h1>
+		<p>Vous pouvez revenir à l'accueil ..</p>
+		<a href="{{ path('front') }}" class="btn btn-primary">Accueil</a>
+		<a href="{{ path('book_index') }}" class="btn btn-succes">Bibliothèque</a>
+	</div>	 
+ {% endblock %}

@@ -6,13 +6,29 @@
  */
 
 // any CSS you import will output into a single css file (app.css in this case)
-// import '../css/app.scss';
-require('../css/app.scss');
+import '../css/app.scss';
+// require('../css/app.scss');
 
 // Need jQuery? Install it with "yarn add jquery", then uncomment to import it.
-// import $ from 'jquery';
-var $ = require('jquery');
+// var $ = require('jquery');
+import $ from 'jquery';
+import jQuery from 'jquery';
 
-require('bootstrap');
+// require('popper.js');
+import 'popper.js';
+
+// require('bootstrap');
+import 'bootstrap';
+
+import 'select2';
 
 console.log('Hello Webpack Encore! Edit me in assets/js/app.js');
+//
+$(document).ready(function(){
+
+	// Form/SentenceSearchType
+	$('#sentence_search_books').select2();
+	$('#sentence_search_authors').select2();
+
+	console.log('Document Ready !!');
+});

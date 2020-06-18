@@ -139,16 +139,15 @@ class Book
 	 * @return void
 	 */
 	public function InitializeSlug()
-                                    	{
-                                    		// if ( empty($this->slug) ){}
-                                    
-                                    		// le slug est systèmatiquement recalculé ..
-                                    		$slugify = new Slugify();
-                                    		$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
-                                    	}
+	{
+		// if ( empty($this->slug) ){}
+
+		// le slug est systèmatiquement recalculé ..
+		$slugify = new Slugify();
+		$this->slug = $slugify->slugify($this->author->getlastName() . '-' . $this->title);
+	}
 
 
-	
     public function getId(): ?int
     {
         return $this->id;
@@ -261,9 +260,9 @@ class Book
     }
 
 	public function setBookMimeType(?string $bookMimeType): void
-                                    	{
-                                    		$this->bookMimeType = $bookMimeType;
-                                    	}
+	{
+		$this->bookMimeType = $bookMimeType;
+	}
 
     public function getBookMimeType(): ?string
     {
@@ -290,6 +289,10 @@ class Book
 
     public function removeBookParagraph(BookParagraph $bookParagraph): self
     {
+		foreach( $bookParagraph->getSentences() as $sentence ){
+			$bookParagraph->removeSentence($sentence);
+		}
+
         if ($this->bookParagraphs->contains($bookParagraph)) {
             $this->bookParagraphs->removeElement($bookParagraph);
             // set the owning side to null (unless already changed)

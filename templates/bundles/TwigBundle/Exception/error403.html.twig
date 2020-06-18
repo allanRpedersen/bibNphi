@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Erreur 403 - Droits insuffisants {% endblock %}
+ 
+ {% block body %}
+	<div class="container">
+		<h1 class="alert alert-danger">Vous n'avez pas les droits nécessaires pour accéder à cette ressource !</h1>
+		<p>Vous pouvez revenir à l'accueil ..</p>
+		<a href="{{ path('front') }}" class="btn btn-primary">Accueil</a>
+		<a href="{{ path('book_index') }}" class="btn btn-succes">Bibliothèque</a>
+	</div>	 
+ {% endblock %}
