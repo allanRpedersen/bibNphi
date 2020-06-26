@@ -12,7 +12,7 @@ import '../css/app.scss';
 // Need jQuery? Install it with "yarn add jquery", then uncomment to import it.
 // var $ = require('jquery');
 import $ from 'jquery';
-import jQuery from 'jquery';
+
 
 // require('popper.js');
 import 'popper.js';
@@ -26,9 +26,16 @@ console.log('Hello Webpack Encore! Edit me in assets/js/app.js');
 //
 $(document).ready(function(){
 
+	
 	// Form/SentenceSearchType
-	$('#sentence_search_books').select2();
-	$('#sentence_search_authors').select2();
+	$('#sentence_search_books').select2({
+		width: '100%',
+		placeholder: 'parmi les oeuvres ...',
+	});
+	$('#sentence_search_authors').select2({
+		width: '100%',
+		placeholder: 'parmi les auteurs ...',
+	});
 
 	console.log('Document Ready !!');
 });

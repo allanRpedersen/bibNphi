@@ -28,14 +28,25 @@ class BookController extends AbstractController
 	 *
 	 */
 	private $parser;
-	private $insideNote, $counter, $text, $isNoteBody, $noteBody, $noteCitation, $noteCollection;
-	private $nbBookWords, $nbBookSentences, $nbBookParagraphs;
-	private $book;
 
+	private $insideNote,
+			$insideAnnotation,
+			$counter,
+			$text,
+			$isNoteBody,
+			$isNoteCitation,
+			$noteBody,
+			$noteCitation,
+			$noteCollection;
+
+	private $nbBookWords,
+			$nbBookSentences,
+			$nbBookParagraphs;
+
+	private $book;
 
 	public function __construct()
 	{
-
 	}
 
     /**
@@ -44,8 +55,8 @@ class BookController extends AbstractController
     public function index(BookRepository $bookRepository): Response
     {
         return $this->render('book/index.html.twig', [
-            'books' => $bookRepository->findAll(),
-        ]);
+			'books' => $bookRepository->findByTitle(),
+		]);
     }
 
     /**
@@ -81,12 +92,9 @@ class BookController extends AbstractController
 			$dirName = 'books/' . $fileName; // to rip leading slash !?
 			$fileName = $dirName . '.' . $fileExt;
 
-			// dump($localPath, $dirName, $fileName);
-
 			//
 			// unix cmd
 			passthru('mkdir ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
-			// dump($errCode, $odtOriginalName, $localPath);
 			
 			if (!$errCode){
 				passthru('unzip '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
@@ -156,17 +164,8 @@ class BookController extends AbstractController
 						'required' => false,
 						'allow_delete' => false,
 						'download_label' => new PropertyPath('odtBookName')
-						
-						// static function (Book $book) {
-									// 	return $book->getTitle();
-									// },
-								])
-					
-								// ->add('odtBookName')
-								// ->add('odtBookSize')
-								// ->add('updatedAt')
-								// ->add('author')
-								->getForm();
+					])
+					->getForm();
 
 		
 		// $form = $this->createForm(BookType::class, $book);
@@ -195,12 +194,14 @@ class BookController extends AbstractController
 				$dirName = 'books/' . $fileName; // to rip leading slash !?
 				$fileName = $dirName . '.' . $fileExt;
 		
-				passthru('mkdir ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
+				// unix cmd
+				// create new directory
+				passthru('mkdir ' . $dirName . ' >books/sorties_console 2>&1', $errCode );
 				
 				// and unzip in it !
-				passthru('unzip ' . $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
+				passthru('unzip ' . $fileName . ' -d ' . $dirName . ' >books/sorties_console 2>&1', $errCode);
 
-				if (!$errCode){}
+				// if (!$errCode){}
 
 				//
 				// xml parsing !!
@@ -239,6 +240,18 @@ class BookController extends AbstractController
 			foreach( $book->getBookParagraphs() as $paragraph ){
 				$book->removeBookParagraph($paragraph);
 			}
+
+			//
+			//
+			$dirName = $book->getOdtBookName();
+			
+			// remove .whatever to get directory name
+			$dirName = substr($dirName, 0, strpos($dirName, '.'));
+
+			// unix cmd
+			// delete associated directory recursive
+			passthru('rm -r books/' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
+
 			//
 			//
             $entityManager->remove($book);
@@ -266,15 +279,20 @@ class BookController extends AbstractController
 			case "TEXT:SPAN":
 			case "DRAW:FRAME" ;
 			case "DRAW:IMAGE" ;
-				// dump([$element, $attribs]);
-				break;
+			// dump([$element, $attribs]);
+			break;
 			
+			case "OFFICE:ANNOTATION" ;
+				$this->insideAnnotation = true;
+				break;
+
 			case "TEXT:NOTE" ;
 				$this->text .= '(#';
 				$this->insideNote = true;
 				break;
 				
 			case "TEXT:NOTE-CITATION" ;
+				$this->isNoteCitation = TRUE;
 				// dump([$element, $attribs]);
 				break;
 				
@@ -293,62 +311,54 @@ class BookController extends AbstractController
 			case "TEXT:H" ;
 				if (!$this->insideNote){
 
-					$this->handleBookParagraph($this->text);
+					$this->handleBookParagraph($this->text, $this->noteCollection);
 					$this->text = '';
-
-					//
-					// then get notes for the paragraph
-					if (!empty($this->noteCollection)){
-						foreach($this->noteCollection as $note){
-							echo('<p>' . $note . '</p>');
-						}
-						$this->noteCollection = [];
-					}
+					$this->noteCollection = [];
 
 				}
 				break;
 
-			case "TEXT:SPAN" ;
+			case "OFFICE:ANNOTATION" ;
+				$this->insideAnnotation = false;
 				break;
-
+			
 			case "TEXT:NOTE" ;
-				// catch the note citation
-				preg_match('/[0-9]+$/', $this->text, $matches);
-				$this->noteCitation = $matches[0];
-
 				//
-				$this->noteCollection[] = '<p>[note#' . $this->noteCitation . ') ' . $this->noteBody . '#]</p>';
-				
+				$this->noteCollection[] = '[note#' . $this->noteCitation . ') ' . $this->noteBody . '#]';
 				//
-				$this->text .= ')';
+				$this->text .= ')'; // to end the note citation in the text
 				$this->insideNote = false;
 				$this->noteBody = '';
 				break;
 
 			case "TEXT:NOTE-CITATION" ;
+				$this->isNoteCitation = FALSE;
 				break;
 
 			case "TEXT:NOTE-BODY" ;
 				// 
 				$this->isNoteBody = false;
 				break;
-
+			
 			case "TEXT:LINE-BREAK" ;
 				//
 				$this->text .= ' ';
 				break;
+			
+			case "TEXT:SPAN" ;
+				break;
 
-			}
+		}	
 
 	}
 
 	private function character_data_handler($parser, $data)
 	{
-		if ($this->isNoteBody)
-			$this->noteBody .= $data;
-		else
+		if ($this->isNoteBody) $this->noteBody .= $data;
+		else if (!$this->insideAnnotation){
 			$this->text .= $data;
-		
+			if ($this->isNoteCitation) $this->noteCitation = $data; 
+		}
 	}
 
 	/**
@@ -362,20 +372,27 @@ class BookController extends AbstractController
 		//
 		$timeStart = microtime(true);
 
-		// various initialization
+		// various initialization settings
 		$this->noteCollection = [];
 		$this->text = '';
 		$this->nbBookWords = 0;
 		$this->nbBookSentences = 0;
 		$this->nbBookParagraphs = 0;
 
-		// setting no excution time out .. bbrrrr !! 
+		// get file size
+		$fileSize = filesize($fileName);
+		$ratio = $fileSize / 16384;
+
+		// setting no execution time out .. bbrrrr !! 
 		ini_set('max_execution_time', '0');
 
 		//
 		//
 		$fh = @fopen($fileName, 'rb');
 		if ( $fh ){
+
+
+
 			$this->parser = xml_parser_create();
 			$this->counter = 0;
 
@@ -409,39 +426,71 @@ class BookController extends AbstractController
 		return($timeEnd - $timeStart);
 	}
 
-	private function handleBookParagraph($paragraph)
+	private function handleBookParagraph($paragraph, $noteCollection)
 	{
 		if ($paragraph != ''){
 
 			$entityManager = $this->getDoctrine()->getManager();
-
-			$bookParagraph = new BookParagraph();
-			$bookParagraph->setBook($this->book);
-
-			// explode the text into array of sentences
-			//$sentences = preg_split('/[.?!;:]/', $this->text, -1, PREG_SPLIT_DELIM_CAPTURE);
-
-			// split the paragraph using the puctuation signs [.?!]
-			// with a negative look-behind feature to exclude roman numbers (example CXI.)
-			$sentences = preg_split('/(?<![IVXLC].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
+			$bookParagraph = NULL;
+			
+			// split the paragraph using the punctuation signs [.?!]
+			// with a negative look-behind feature to exclude :
+			// 			- roman numbers (example CXI.)
+			//			- S. as St
+			//			- ordered list ( 1. aaa 2. bbb 3. ccc etc)
+			//
+			$sentences = preg_split('/(?<![IVXLCM1234567890S].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
 			if ($sentences){
 				foreach ($sentences as $sentence ){
-			
-					$bookSentence = new BookSentence();
-					$bookSentence->setBookParagraph($bookParagraph);
-					$bookSentence->setContent($sentence);
+					
+					// remove all non-breaking space !!
+					// regex / /u << unicode support
+					$sentence = preg_replace("/[\x{00a0}\s]+/u", " ", $sentence);
+					$sentence = ltrim($sentence);
+					
+					if ($sentence != ''){
+						
+						if ( NULL === $bookParagraph ){
+							$bookParagraph = new BookParagraph();
+							$bookParagraph->setBook($this->book);
+						}
 
-					// echo('<p>' . $sentence . '</p>');
-					$this->nbBookSentences++;
-					$entityManager->persist($bookSentence);
+						$bookSentence = new BookSentence();
+						$bookSentence->setBookParagraph($bookParagraph);
+						$bookSentence->setContent($sentence);
+
+						$this->nbBookSentences++;
+						$entityManager->persist($bookSentence);
+					}
+
 				}
 			}
 
-			//			
-			$this->nbBookParagraphs++;
-			$entityManager->persist($bookParagraph);
+			//
+			if ( NULL !== $bookParagraph ){
 
-			$entityManager->flush();
+				$this->nbBookParagraphs++;				
+				$entityManager->persist($bookParagraph);
+
+				//
+				// then get notes if any for the paragraph
+				if (!empty($noteCollection)){
+					foreach($this->noteCollection as $note){
+						$pNote = new BookParagraph();
+						$pNote->SetBook($this->book);
+
+						$sNote = new BookSentence();
+						$sNote->setBookParagraph($pNote);
+						$sNote->setContent($note);
+
+						$entityManager->persist($sNote);
+						$entityManager->persist($pNote);
+					}
+				}
+
+				$entityManager->flush();
+			}
+			
 		}
 	}
 

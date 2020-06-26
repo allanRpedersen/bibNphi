@@ -28,11 +28,15 @@ class BookParagraph
     /**
      * @ORM\OneToMany(targetEntity=BookSentence::class, mappedBy="bookParagraph")
      */
-    private $sentences;
+	private $sentences;
+	
+	private $matchingSentences;
 
     public function __construct()
     {
         $this->sentences = new ArrayCollection();
+		$this->matchingSentences = new ArrayCollection();
+		// dd('$$ BookParagraph __construct $$');
     }
 
     public function getId(): ?int
@@ -81,5 +85,36 @@ class BookParagraph
         }
 
         return $this;
-    }
+	}
+	
+	public function getMatchingSentences($stringToSearch): ?Collection
+	{
+		$this->matchingSentences = new ArrayCollection();
+
+		foreach($this->sentences as $sentence){
+
+			//
+			$iNeedle = mb_stripos($sentence->getContent(), $stringToSearch, 0, mb_detect_encoding($sentence->getContent()));
+
+			if(FALSE !== $iNeedle){
+
+				$this->matchingSentences->add($sentence);
+
+
+			}
+			
+			// if (strlen(stristr($sentence->getContent(), $stringToSearch )) > 0 ){
+			// }
+			
+			// split the paragraph using the punctuation signs [.?!]
+			// with a negative look-behind feature to exclude roman numbers (example CXI.)
+			//
+			// $sentences = preg_split('/(?<![IVXLC].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
+			// if ($sentences){
+				// 	foreach ($sentences as $sentence ){
+					
+
+		}
+		return $this->matchingSentences;
+	}
 }

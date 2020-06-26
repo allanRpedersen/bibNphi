@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\SentenceSearch;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -21,28 +22,31 @@ class SentenceSearchType extends AbstractType
 				'required' => true,
 				'label' => false,
 				'attr' => [
-					'placeholder' => 'chaîne à rechercher ...'
+					'style' => 'width: 100%',
+					'placeholder' => 'chaîne à rechercher ...',
 				],
 			] )
             ->add('books', EntityType::class, [
 				'class' => Book::class,
 				'choice_label' => 'title',
+				'query_builder' => function (EntityRepository $br){
+					return $br->createQueryBuilder('u')
+							->orderBy('u.title', 'ASC');
+				},
 				'required' => false,
 				'multiple' => true,
 				'label' => false,
-				'attr' => [
-					'placeholder' => 'parmi les oeuvres ...'
-				],
 			] )
             ->add('authors', EntityType::class, [
 				'class' => Author::class,
 				'choice_label' => 'lastName',
+				'query_builder' => function (EntityRepository $ar){
+					return $ar->createQueryBuilder('u')
+							->orderBy('u.lastName', 'ASC');
+				},
 				'required' => false,
 				'multiple' => true,
 				'label' => false,
-				'attr' => [
-					'placeholder' => 'parmi les auteurs ...'
-				],
 			] )
         ;
     }

@@ -19,6 +19,28 @@ class AuthorRepository extends ServiceEntityRepository
         parent::__construct($registry, Author::class);
     }
 
+
+	/**
+	 * 
+	 * 
+	 * findByLastName
+	 * 
+	 * @param string $orderBy
+     * @return Taxon[] Returns an array of Taxon objects
+     */
+    public function findByLastName($orderBy='ASC')
+    {
+        return $this->createQueryBuilder('t')
+            //->andWhere('t.lastName = :val')
+            //->setParameter('val', $value)
+            ->orderBy('t.lastName', $orderBy)
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+
     // /**
     //  * @return Author[] Returns an array of Author objects
     //  */

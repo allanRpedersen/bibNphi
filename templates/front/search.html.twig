@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste de Recherche !!{% endblock %}
+
+{% block body %}
+	<div class="container mt1">
+		<h1>Recherche de : {{ string }}</h1>
+		<h2>dans la liste de livres suivante :</h2>
+		{% for book in books %}
+			<p>{{book.title}} - {{book.author.lastName}}</p>
+		{% endfor %}
+		<h3>occurences repérées :</h3>
+		{% for sentence in sentences %}
+			<p>{{sentence.content}}</p>
+		{% endfor %}
+	</div>
+{% endblock %}

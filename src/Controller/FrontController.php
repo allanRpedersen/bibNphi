@@ -19,13 +19,71 @@ class FrontController extends AbstractController
      */
     public function index(Request $request, BookRepository $bookRepository, AuthorRepository $authorRepository)
     {
+		$authors = [];
+		$bookList = [];
+		$matchingSentences =[];
+
 		$search = new SentenceSearch();
 		$form = $this->createForm(SentenceSearchType::class, $search);
 		$form->handleRequest($request);
 
+		if ($form->isSubmitted() && $form->isValid())
+		{
+			$stringToSearch = $search->getStringToSearch();
+
+
+			if ($search->getBooks()->isEmpty()){
+
+				if ($search->getAuthors()->isEmpty()){
+
+					// search in all the library .. huge !-|
+					echo "<script>alert(\"(Vous désirez effectuer une recherche sur toute la bibliothèque ??-)\")</script>";
+					$bookList = $bookRepository->findAll();
+				}
+				
+				else {
+
+					// search in all the books wrote by the given author list ..
+					$authors = $search->getAuthors();
+					foreach($authors as $author){
+						$books = $bookRepository->findByAuthor($author);
+						foreach($books as $book) $bookList[]= $book;
+					}
+				}
+			}
+			else {
+				
+				// search through a list of books ..
+				$bookList = $search->getBooks();
+				
+			}
+			
+			// dd($bookList);
+
+			foreach($bookList as $book){
+				$paragraphs = $book->getBookParagraphs();
+
+				foreach($paragraphs as $paragraph){
+					$sentences = $paragraph->getMatchingSentences($stringToSearch);
+					if ($sentences)
+						foreach($sentences as $sentence){
+							$matchingSentences[] = $sentence;
+							// echo($sentence->getContent());
+						}
+				}
+			}
+
+			return $this->render('front/search.html.twig', [
+				'string' => $stringToSearch,
+				'books' => $bookList,
+				'sentences' => $matchingSentences,
+			]);
+
+			dd($search);
+		}
+
         return $this->render('front/index.html.twig', [
-            'authors' => $authorRepository->findAll(),
-			'books' => $bookRepository->findAll(),
+            'authors' => $authorRepository->findByLastName(),
 			'form' => $form->createView(),
         ]);
     }

@@ -9,9 +9,9 @@
 		<div class="col-md-4">
 			<h1>{{ book.title }}</h1>
 			<br>
-			<p>parsing time : {{ book.parsingTime | round(2, 'floor')}} sec ({{ (book.parsingTime / 60)  | round(1, 'floor') }} min)</p>
-			<p>paragraphs   : {{ book.nbParagraphs }}</p>
-			<p>sentences    : {{ book.nbSentences }}</p>
+			<p>xml parsing time : {{ book.parsingTime | round(2, 'floor')}} sec ({{ (book.parsingTime / 60)  | round(1, 'floor') }} min)</p>
+			<p>paragraphs       : {{ book.nbParagraphs }}</p>
+			<p>sentences        : {{ book.nbSentences }}</p>
 			<br>
 			<h3>écrit par {{ book.author.firstName ~' '~ book.author.lastName }}</h3>
 			<h4>publié en {{ book.publishedYear }}</h4>

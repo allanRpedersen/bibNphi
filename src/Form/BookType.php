@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Book;
 use App\Entity\Author;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\AbstractType;
 use Vich\UploaderBundle\Form\Type\VichFileType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -20,7 +21,11 @@ class BookType extends AbstractType
 			->add('publishedYear')
 			->add('author', EntityType::class, [
 				'class' => Author::class,
-				'choice_label' => 'lastName'
+				'choice_label' => 'lastName',
+				'query_builder' => function ( EntityRepository $er ){
+					return $er->createQueryBuilder('u')
+							->orderBy('u.lastName', 'ASC');
+				},
 			])
 			->add('odtBookFile', VichFileType::class, [
 				'label' => 'Document au format odt',

@@ -10,6 +10,10 @@ class SentenceSearch
 {
 	/**
 	 * La chaîne à rechercher
+	 * 
+	 * 		un mot
+	 * 		une chaine de mots sans ponctuation ( ET )( séparateur caractère espace )
+	 * 		une chaine de mots avec ponctuation [.!?] ( OU )( le premier caractère non alphabétique sert de séparateur )
 	 *
 	 * @var string | null
 	 */

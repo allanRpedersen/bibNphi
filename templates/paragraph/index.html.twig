@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ParagraphController!{% endblock %}
+
+{% block body %}
+<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+<div class="example-wrapper">
+    <h1>Hello {{ controller_name }}! ✅</h1>
+
+    This friendly message is coming from:
+    <ul>
+        <li>Your controller at <code><a href="{{ '/home/allan/websites/bibNphi/src/Controller/ParagraphController.php'|file_link(0) }}">src/Controller/ParagraphController.php</a></code></li>
+        <li>Your template at <code><a href="{{ '/home/allan/websites/bibNphi/templates/paragraph/index.html.twig'|file_link(0) }}">templates/paragraph/index.html.twig</a></code></li>
+    </ul>
+</div>
+{% endblock %}
