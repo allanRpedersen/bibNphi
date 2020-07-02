@@ -9,7 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class SentenceSearch
 {
 	/**
-	 * La chaîne à rechercher
+	 * La chaîne à rechercher, forcément non nulle
 	 * 
 	 * 		un mot
 	 * 		une chaine de mots sans ponctuation ( ET )( séparateur caractère espace )

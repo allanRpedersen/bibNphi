@@ -24,6 +24,27 @@ import 'select2';
 
 console.log('Hello Webpack Encore! Edit me in assets/js/app.js');
 //
+
+
+// $('button#main_search').on('click', function(e)
+// $('button#main_search').addEventListener('click', function(e)
+// $('button#main_search').on('click', function(e)
+// {
+// 	console.log('===== showSpinner ====', e.target );
+// 	return true;
+	
+// });
+
+function showSpinner(){
+
+	console.log('showSpinner');
+
+	$('#search_button').append('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span class="sr-only">Rechercher...</span>');
+	alert('showSpinner');
+}
+
+
+
 $(document).ready(function(){
 
 	
@@ -38,4 +59,5 @@ $(document).ready(function(){
 	});
 
 	console.log('Document Ready !!');
+	// alert();
 });

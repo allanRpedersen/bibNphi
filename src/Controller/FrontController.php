@@ -29,6 +29,8 @@ class FrontController extends AbstractController
 
 		if ($form->isSubmitted() && $form->isValid())
 		{
+			// spinner ?
+
 			$stringToSearch = $search->getStringToSearch();
 
 
@@ -37,8 +39,10 @@ class FrontController extends AbstractController
 				if ($search->getAuthors()->isEmpty()){
 
 					// search in all the library .. huge !-|
-					echo "<script>alert(\"(Vous désirez effectuer une recherche sur toute la bibliothèque ??-)\")</script>";
+					echo "<script>alert(\"(Vous allez effectuer une recherche sur toute la bibliothèque ??-)\")</script>";
 					$bookList = $bookRepository->findAll();
+
+					dd('aa', $bookList);
 				}
 				
 				else {
@@ -47,9 +51,13 @@ class FrontController extends AbstractController
 					$authors = $search->getAuthors();
 					foreach($authors as $author){
 						$books = $bookRepository->findByAuthor($author);
-						foreach($books as $book) $bookList[]= $book;
+						foreach($books as $book) $bookList[] = $book;
 					}
+					// dd('bb', $bookList);
+
 				}
+
+			
 			}
 			else {
 				
@@ -59,6 +67,7 @@ class FrontController extends AbstractController
 			}
 			
 			// dd($bookList);
+			// watabout a spinner ?
 
 			foreach($bookList as $book){
 				$paragraphs = $book->getBookParagraphs();
@@ -68,7 +77,6 @@ class FrontController extends AbstractController
 					if ($sentences)
 						foreach($sentences as $sentence){
 							$matchingSentences[] = $sentence;
-							// echo($sentence->getContent());
 						}
 				}
 			}
@@ -79,7 +87,7 @@ class FrontController extends AbstractController
 				'sentences' => $matchingSentences,
 			]);
 
-			dd($search);
+			// dd($search);
 		}
 
         return $this->render('front/index.html.twig', [

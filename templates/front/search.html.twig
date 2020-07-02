@@ -9,7 +9,7 @@
 		{% for book in books %}
 			<p>{{book.title}} - {{book.author.lastName}}</p>
 		{% endfor %}
-		<h3>occurences repérées :</h3>
+		<h3>{{sentences|length}} occurences repérées :</h3>
 		{% for sentence in sentences %}
 			<p>{{sentence.content}}</p>
 		{% endfor %}

@@ -58,5 +58,10 @@ class SentenceSearchType extends AbstractType
 			'method' => 'get',
 			'csrf_protection' => false,
         ]);
-    }
+	}
+	
+	// public function getBlockPrefix()
+	// {
+	// 	return '';
+	// }
 }

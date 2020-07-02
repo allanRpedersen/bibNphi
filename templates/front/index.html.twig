@@ -16,8 +16,11 @@
 		<div class="col">
 		</div>
 	</div> #}
-	<button class="btn btn-primary">Rechercher</button>
-	{{ form_end(form) }}
+	{# <button id="main_search" onclick="showSpinner()" class="btn btn-primary" type="button">Rechercher</button> #}
+	<button id="search_button" class="btn btn-primary" onclick="showSpinner()">
+		Rechercher
+	</button>
+	{{ form_end(form) }}	
 </div>
 <div class="container mt-5">
 	<h1 class="my-2 text-center">Bibliothèque</h1>
@@ -40,4 +43,21 @@
 	</div>
 </div>
 {% endblock %}
+
+{% block javascripts %}
+<script>
+	function showSpinner(){
+
+		el = document.getElementById("search_button");
+		el.innerHTML = 'En cours ';
+		el.innerHTML += '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+		el.innerHTML += '<span class="sr-only">Rechercher...</span>';
+
+		// alert('showSpinner');
+
+	}
+</script>
+{% endblock %}
+
+
 
