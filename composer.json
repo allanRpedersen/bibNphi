@@ -35,11 +35,12 @@
 		"vich/uploader-bundle": "^1.13"
 	},
     "require-dev": {
-        "symfony/debug-pack": "*",
-        "symfony/maker-bundle": "^1.0",
-        "symfony/profiler-pack": "*",
-        "symfony/test-pack": "*"
-    },
+		"doctrine/doctrine-fixtures-bundle": "^3.3",
+		"symfony/debug-pack": "*",
+		"symfony/maker-bundle": "^1.0",
+		"symfony/profiler-pack": "*",
+		"symfony/test-pack": "*"
+	},
     "config": {
         "preferred-install": {
             "*": "dist"
