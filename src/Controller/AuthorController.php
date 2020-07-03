@@ -5,10 +5,11 @@ namespace App\Controller;
 use App\Entity\Author;
 use App\Form\AuthorType;
 use App\Repository\AuthorRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 /**
  * @Route("/author")
@@ -27,7 +28,8 @@ class AuthorController extends AbstractController
 
     /**
      * @Route("/new", name="author_new", methods={"GET","POST"})
-     */
+	 * @IsGranted("ROLE_USER")
+	 */
     public function new(Request $request): Response
     {
         $author = new Author();
@@ -60,6 +62,7 @@ class AuthorController extends AbstractController
 
     /**
      * @Route("/{slug}/edit", name="author_edit", methods={"GET","POST"})
+	 * @IsGranted("ROLE_USER")
      */
     public function edit(Request $request, Author $author): Response
     {
@@ -80,6 +83,7 @@ class AuthorController extends AbstractController
 
     /**
      * @Route("/{slug}", name="author_delete", methods={"DELETE"})
+	 * @IsGranted("ROLE_USER")
      */
     public function delete(Request $request, Author $author): Response
     {
