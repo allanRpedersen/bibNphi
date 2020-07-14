@@ -1,10 +1,10 @@
 {{ form_start(form) }}
     {{ form_widget(form) }}
 	<button class="btn btn-info">
-		<span hidden="true" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-		<span hidden="true" class="sr-only">Loading...</span>
 		{{ button_label|default('Ajout') }}
 	</button>
 
-    {# <button class="btn btn-info">{{ button_label|default('Ajout') }}</button> #}
+	{# <span hidden="true" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+		<span hidden="true" class="sr-only">Loading...</span> #}
+
 {{ form_end(form) }}

@@ -94,7 +94,7 @@ class BookController extends AbstractController
 
 			//
 			// unix cmd
-			passthru('mkdir ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
+			passthru('mkdir -v ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
 			
 			if (!$errCode){
 				passthru('unzip '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
@@ -181,10 +181,9 @@ class BookController extends AbstractController
 				// a new book file has been loaded ..
 				// need to remove previous document directory
 				
-				
 				// unix cmd
 				// delete previous directory recursive
-				passthru('rm -r ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
+				passthru('rm -v -r ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
 				
 				// then create new document directory
 				$localPath = $uploaderHelper->asset($book, 'odtBookFile');
@@ -196,7 +195,7 @@ class BookController extends AbstractController
 		
 				// unix cmd
 				// create new directory
-				passthru('mkdir ' . $dirName . ' >books/sorties_console 2>&1', $errCode );
+				passthru('mkdir -v ' . $dirName . ' >books/sorties_console 2>&1', $errCode );
 				
 				// and unzip in it !
 				passthru('unzip ' . $fileName . ' -d ' . $dirName . ' >books/sorties_console 2>&1', $errCode);
@@ -245,12 +244,12 @@ class BookController extends AbstractController
 			// unix cmd
 			// remove odt file
 			$dirName = $book->getOdtBookName();
-			passthru('rm books/'. $dirName . ' >>books/sorties_console 2>&1', $errCode );
+			passthru('rm -v books/'. $dirName . ' >>books/sorties_console 2>&1', $errCode );
 			
 			// remove .whatever to get directory name
 			$dirName = substr($dirName, 0, strpos($dirName, '.'));
 			// then delete associated directory recursive
-			passthru('rm -r books/' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
+			passthru('rm -v -r books/' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
 
 			//
 			//
@@ -259,6 +258,11 @@ class BookController extends AbstractController
         }
 
         return $this->redirectToRoute('book_index');
+	}
+
+	private function show_parsing()
+	{
+		
 	}
 
 
@@ -362,7 +366,7 @@ class BookController extends AbstractController
 	}
 
 	/**
-	 * Parse the xml file 'content.xml' which contains an odt document.
+	 * Parse the xml file 'content.xml' which contains the odt document.
 	 *
 	 * @param string $fileName
 	 * @return void

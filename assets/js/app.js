@@ -37,10 +37,10 @@ console.log('Hello Webpack Encore! Edit me in assets/js/app.js');
 
 function showSpinner(){
 
-	console.log('showSpinner');
+	console.log('showSpinner !waouh');
 
-	$('#search_button').append('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span class="sr-only">Rechercher...</span>');
-	alert('showSpinner');
+	// $('#search_button').append('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span class="sr-only">Rechercher...</span>');
+	// alert('showSpinner');
 }
 
 
