@@ -4,14 +4,15 @@ namespace App\Form;
 
 use App\Entity\Book;
 use App\Entity\Author;
+use App\Form\GenericType;
 use Doctrine\ORM\EntityRepository;
-use Symfony\Component\Form\AbstractType;
+// use Symfony\Component\Form\AbstractType;
 use Vich\UploaderBundle\Form\Type\VichFileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class BookType extends AbstractType
+class BookType extends GenericType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {

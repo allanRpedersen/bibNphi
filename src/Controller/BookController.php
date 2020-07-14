@@ -98,23 +98,23 @@ class BookController extends AbstractController
 			
 			if (!$errCode){
 				passthru('unzip '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
+				
+				//
+				// xml parsing !
+				$this->book = $book;
+				$this->book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
+							->setNbParagraphs($this->nbBookParagraphs)
+							->setNbSentences($this->nbBookSentences)
+							->setNbWords($this->nbBookWords)
+							;
+				
+				$entityManager->persist($this->book);
+				$entityManager->flush();
+				
+				return $this->redirectToRoute('book_show', [
+					'slug' => $this->book->getSlug()
+					]);
 			}
-
-			//
-			// xml parsing !
-			$this->book = $book;
-			$book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
-				->setNbParagraphs($this->nbBookParagraphs)
-				->setNbSentences($this->nbBookSentences)
-				->setNbWords($this->nbBookWords)
-				;
-			
-			$entityManager->persist($book);
-			$entityManager->flush();
-			
-			return $this->redirectToRoute('book_show', [
-				'slug' => $book->getSlug()
-			]);
         }
 
         return $this->render('book/new.html.twig', [
@@ -242,14 +242,14 @@ class BookController extends AbstractController
 			}
 
 			//
-			//
+			// unix cmd
+			// remove odt file
 			$dirName = $book->getOdtBookName();
+			passthru('rm books/'. $dirName . ' >>books/sorties_console 2>&1', $errCode );
 			
 			// remove .whatever to get directory name
 			$dirName = substr($dirName, 0, strpos($dirName, '.'));
-
-			// unix cmd
-			// delete associated directory recursive
+			// then delete associated directory recursive
 			passthru('rm -r books/' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
 
 			//
@@ -436,7 +436,7 @@ class BookController extends AbstractController
 			// split the paragraph using the punctuation signs [.?!]
 			// with a negative look-behind feature to exclude :
 			// 			- roman numbers (example CXI.)
-			//			- S. as St
+			//			- S. as St, Saint
 			//			- ordered list ( 1. aaa 2. bbb 3. ccc etc)
 			//
 			$sentences = preg_split('/(?<![IVXLCM1234567890S].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
@@ -478,13 +478,13 @@ class BookController extends AbstractController
 					foreach($this->noteCollection as $note){
 						$pNote = new BookParagraph();
 						$pNote->SetBook($this->book);
+						$entityManager->persist($pNote);
 
 						$sNote = new BookSentence();
 						$sNote->setBookParagraph($pNote);
 						$sNote->setContent($note);
-
 						$entityManager->persist($sNote);
-						$entityManager->persist($pNote);
+
 					}
 				}
 

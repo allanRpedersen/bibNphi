@@ -6,9 +6,9 @@
 	<div class="container">
 		<h1>Modification</h1>
 
-		{{ include('author/_form.html.twig', {'button_label': 'Update'}) }}
+		{{ include('author/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
 
-		<a href="{{ path('author_index') }}">retour</a>
+		<a type="button" class="btn btn-info" href="{{ path('author_index') }}">Retour</a>
 
 		{{ include('author/_delete_form.html.twig') }}
 	</div>
