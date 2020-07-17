@@ -26,7 +26,7 @@ class AuthorRepository extends ServiceEntityRepository
 	 * findByLastName
 	 * 
 	 * @param string $orderBy
-     * @return Taxon[] Returns an array of Taxon objects
+     * @return Author[] Returns an array of Author objects
      */
     public function findByLastName($orderBy='ASC')
     {

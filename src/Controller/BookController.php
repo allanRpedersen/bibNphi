@@ -8,6 +8,7 @@ use App\Form\BookType;
 use App\Entity\BookSentence;
 use App\Entity\BookParagraph;
 use App\Repository\BookRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -63,18 +64,22 @@ class BookController extends AbstractController
      * @Route("/new", name="book_new", methods={"GET","POST"})
 	 * @IsGranted("ROLE_USER")
      */
-    public function new(Request $request, UploaderHelper $uploaderHelper ): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, UploaderHelper $uploaderHelper ): Response
     {
         $book = new Book();
         $form = $this->createForm(BookType::class, $book);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-			$entityManager = $this->getDoctrine()->getManager();
+			// $entityManager = $this->getDoctrine()->getManager();
 			
 			//
 			$odtBookFile = $book->getOdtBookFile();
 			$odtOriginalName = $odtBookFile->getClientOriginalName();
+
+			//
+			passthru('echo \'== ' . $odtOriginalName . ' ==\' >>books/sorties_console 2>&1', $errCode );
+
 
 			$book->setNbParagraphs(0)
 				->setNbSentences(0)
@@ -97,7 +102,7 @@ class BookController extends AbstractController
 			passthru('mkdir -v ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
 			
 			if (!$errCode){
-				passthru('unzip '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
+				passthru('unzip -q '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
 				
 				//
 				// xml parsing !
@@ -137,10 +142,10 @@ class BookController extends AbstractController
      * @Route("/{slug}/edit", name="book_edit", methods={"GET","POST"})
 	 * @IsGranted("ROLE_USER")
      */
-    public function edit(Request $request, Book $book, UploaderHelper $uploaderHelper): Response
+    public function edit(Request $request, Book $book, EntityManagerInterface $entityManager, UploaderHelper $uploaderHelper): Response
     {
 
-		$odtBookSize = $book->getOdtBookSize(); // set if exists
+		$odtBookSize = $book->getOdtBookSize(); // set if exists <-- never used !-))
 
 		// dump($book);
 
@@ -173,7 +178,7 @@ class BookController extends AbstractController
 		
 		if ($form->isSubmitted() && $form->isValid()) {
 			
-            $entityManager = $this->getDoctrine()->getManager();
+            // $entityManager = $this->getDoctrine()->getManager();
 			$entityManager->flush();
 			
 			if (null !== $book->getOdtBookFile()){
@@ -183,7 +188,7 @@ class BookController extends AbstractController
 				
 				// unix cmd
 				// delete previous directory recursive
-				passthru('rm -v -r ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
+				passthru('rm -v -r ' . $dirName . ' >books/sorties_console 2>&1', $errCode );
 				
 				// then create new document directory
 				$localPath = $uploaderHelper->asset($book, 'odtBookFile');
@@ -195,10 +200,10 @@ class BookController extends AbstractController
 		
 				// unix cmd
 				// create new directory
-				passthru('mkdir -v ' . $dirName . ' >books/sorties_console 2>&1', $errCode );
+				passthru('mkdir -v ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
 				
 				// and unzip in it !
-				passthru('unzip ' . $fileName . ' -d ' . $dirName . ' >books/sorties_console 2>&1', $errCode);
+				passthru('unzip -q ' . $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
 
 				// if (!$errCode){}
 
@@ -284,7 +289,7 @@ class BookController extends AbstractController
 			case "DRAW:FRAME" ;
 			case "DRAW:IMAGE" ;
 			// dump([$element, $attribs]);
-			break;
+				break;
 			
 			case "OFFICE:ANNOTATION" ;
 				$this->insideAnnotation = true;
@@ -387,18 +392,24 @@ class BookController extends AbstractController
 		$fileSize = filesize($fileName);
 		$ratio = $fileSize / 16384;
 
+		// unix cmd
+		// 
+		passthru('echo \'$fileName:' . $fileName . ' ~ $fileSize:' . $fileSize . '\' >>books/sorties_console 2>&1', $errCode );
+		passthru('echo \'ratio:' . $ratio . '\' >>books/sorties_console 2>&1', $errCode );
+
+
 		// setting no execution time out .. bbrrrr !! 
-		ini_set('max_execution_time', '0');
+		if ($ratio > 1) ini_set('max_execution_time', '0');
 
 		//
 		//
 		$fh = @fopen($fileName, 'rb');
 		if ( $fh ){
 
-
+			$nbBuffer = 0;
 
 			$this->parser = xml_parser_create();
-			$this->counter = 0;
+			$this->counter = 0; // nb de paragraphes !!?
 
 			//
 			// set up the handlers
@@ -407,7 +418,14 @@ class BookController extends AbstractController
 
 			// fread vs fgets !! ??
 			while (($buffer = fread($fh, 16384)) != false) {
+				//
+				// 
+				$nbBuffer++;
 				xml_parse($this->parser, $buffer);
+				passthru('echo \'n° fread_buffer:' . $nbBuffer . '\' >>books/sorties_console 2>&1', $errCode );
+
+				//
+				//
 			}
 			xml_parse($this->parser, '', true); // finalize parsing
 			xml_parser_free($this->parser);

@@ -39,10 +39,13 @@ class FrontController extends AbstractController
 				if ($search->getAuthors()->isEmpty()){
 
 					// search in all the library .. huge !-|
-					echo "<script>alert(\"(Vous allez effectuer une recherche sur toute la bibliothèque ??-)\")</script>";
+					// echo "<script>alert(\"(Vous allez effectuer une recherche sur toute la bibliothèque ??-)\")</script>";
 					$bookList = $bookRepository->findAll();
 
-					dd('aa', $bookList);
+					// std execution time is 30 sec.
+					// set execution time to infinite !!
+					ini_set('max_execution_time', '0');
+
 				}
 				
 				else {

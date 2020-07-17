@@ -25,7 +25,7 @@ class BookRepository extends ServiceEntityRepository
 	 * findByTitle
 	 * 
 	 * @param string $orderBy
-     * @return Taxon[] Returns an array of Taxon objects
+     * @return Book[] Returns an array of Book objects
      */
     public function findByTitle($orderBy='ASC')
     {
