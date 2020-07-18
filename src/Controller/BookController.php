@@ -75,8 +75,24 @@ class BookController extends AbstractController
 		
 		//
 		passthru('echo \'222 appel handleRequest() 222\' >>books/sorties_console 2>&1', $errCode );
+		passthru('echo \'request>getMethod(): ' . $request->getMethod() . '\' >>books/sorties_console 2>&1', $errCode );
 
 		$form->handleRequest($request);
+		// dump($request);
+		// dump($request->files->get('book')->getClientOriginalName());
+
+		$debug1 = $request->files->get('book');
+
+		if ( $debug1 == null ){
+			passthru('echo \'request>files>book>origname: NULL\' >>books/sorties_console 2>&1', $errCode );
+		}
+		else{
+			passthru('echo \'request>files>book>origname:' . $debug1['odtBookFile']['file']->getClientOriginalName() . '\' >>books/sorties_console 2>&1', $errCode );
+			passthru('echo \'request>files>book>pathname:' . $debug1['odtBookFile']['file']->getPathName() . '\' >>books/sorties_console 2>&1', $errCode );
+			// dd($debug1['odtBookFile']['file']->getPathName());
+		}
+
+
 
 		//
 		passthru('echo \'333 sortie handleRequest() 333\' >>books/sorties_console 2>&1', $errCode );
@@ -87,7 +103,7 @@ class BookController extends AbstractController
 
 			//
 			passthru('echo \'444 formulaire soumis et valide 444\' >>books/sorties_console 2>&1', $errCode );
-			
+			// dd($request);
 			//
 			$odtBookFile = $book->getOdtBookFile();
 			$odtOriginalName = $odtBookFile->getClientOriginalName();
