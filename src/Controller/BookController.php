@@ -189,7 +189,9 @@ class BookController extends AbstractController
 				// unix cmd
 				// delete previous directory recursive
 				passthru('rm -v -r ' . $dirName . ' >books/sorties_console 2>&1', $errCode );
-				
+				// and odt file
+				passthru('rm -v '. $dirName . '.odt >>books/sorties_console 2>&1', $errCode );
+
 				// then create new document directory
 				$localPath = $uploaderHelper->asset($book, 'odtBookFile');
 				$fileName = \pathinfo($localPath, PATHINFO_FILENAME);
@@ -265,9 +267,14 @@ class BookController extends AbstractController
         return $this->redirectToRoute('book_index');
 	}
 
-	private function show_parsing()
+	private function show_parsing(Book $book) : Response
 	{
-		
+		// while parsing is running
+
+		// then 
+        return $this->render('book/show.html.twig', [
+            'book' => $book,
+        ]);
 	}
 
 
@@ -417,7 +424,7 @@ class BookController extends AbstractController
 			xml_set_character_data_handler($this->parser, [$this, "character_data_handler"]);
 
 			// fread vs fgets !! ??
-			while (($buffer = fread($fh, 16384)) != false) {
+			while (($buffer = fread($fh, 16384)) != false){
 				//
 				// 
 				$nbBuffer++;
@@ -431,21 +438,25 @@ class BookController extends AbstractController
 			xml_parser_free($this->parser);
 
 			if (!feof($fh)) {
-				echo "Erreur: fgets() a échoué\n";
+				passthru('echo "Erreur: fread() a échoué ..." >>books/sorties_console 2>&1', $errCode);
 			}
 
 			fclose($fh);
 
 		}
 		else {
+			passthru('echo "Erreur: fopen a retourné FALSE !!" >>books/sorties_console 2>&1', $errCode);
 			return 0 ; // no parsing !!
 		}
 
 		// stop timer !
-		$timeEnd = \microtime(true);
+		//$timeEnd = \microtime(true);
+
+		$duration = \microtime(true) - $timeStart;
+		passthru('echo \'duration:' . $duration . '\' >>books/sorties_console 2>&1', $errCode );
 
 		// dd($timeStart, $timeEnd, $timeEnd - $timeStart);
-		return($timeEnd - $timeStart);
+		return($duration);
 	}
 
 	private function handleBookParagraph($paragraph, $noteCollection)
