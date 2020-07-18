@@ -68,7 +68,7 @@ class BookController extends AbstractController
     {
 
 		//
-		passthru('echo \'111 entrée fonction new 111\' >books/sorties_console 2>&1', $errCode );
+		passthru('echo \'111 entrée fonction new 111\' >>books/sorties_console 2>&1', $errCode );
 	
         $book = new Book();
 		$form = $this->createForm(BookType::class, $book);
@@ -111,7 +111,7 @@ class BookController extends AbstractController
 			$dirName = 'books/' . $fileName; // to rip leading slash !?
 			$fileName = $dirName . '.' . $fileExt;
 
-			if (!file_exists($filename)){
+			if (!file_exists($fileName)){
 
 			}
 
