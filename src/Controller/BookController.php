@@ -66,12 +66,27 @@ class BookController extends AbstractController
      */
     public function new(Request $request, EntityManagerInterface $entityManager, UploaderHelper $uploaderHelper ): Response
     {
+
+		//
+		passthru('echo \'111 entrée fonction new 111\' >books/sorties_console 2>&1', $errCode );
+	
         $book = new Book();
-        $form = $this->createForm(BookType::class, $book);
-        $form->handleRequest($request);
+		$form = $this->createForm(BookType::class, $book);
+		
+		//
+		passthru('echo \'222 appel handleRequest() 222\' >>books/sorties_console 2>&1', $errCode );
+
+		$form->handleRequest($request);
+
+		//
+		passthru('echo \'333 sortie handleRequest() 333\' >>books/sorties_console 2>&1', $errCode );
+
 
         if ($form->isSubmitted() && $form->isValid()) {
 			// $entityManager = $this->getDoctrine()->getManager();
+
+			//
+			passthru('echo \'444 formulaire soumis et valide 444\' >>books/sorties_console 2>&1', $errCode );
 			
 			//
 			$odtBookFile = $book->getOdtBookFile();
@@ -79,7 +94,6 @@ class BookController extends AbstractController
 
 			//
 			passthru('echo \'== ' . $odtOriginalName . ' ==\' >>books/sorties_console 2>&1', $errCode );
-
 
 			$book->setNbParagraphs(0)
 				->setNbSentences(0)
@@ -96,6 +110,10 @@ class BookController extends AbstractController
 
 			$dirName = 'books/' . $fileName; // to rip leading slash !?
 			$fileName = $dirName . '.' . $fileExt;
+
+			if (!file_exists($filename)){
+
+			}
 
 			//
 			// unix cmd
@@ -378,7 +396,7 @@ class BookController extends AbstractController
 	}
 
 	/**
-	 * Parse the xml file 'content.xml' which contains the odt document.
+	 * Parse the xml file which contains the odt document.
 	 *
 	 * @param string $fileName
 	 * @return void
