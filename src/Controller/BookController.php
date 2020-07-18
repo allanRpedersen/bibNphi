@@ -409,8 +409,10 @@ class BookController extends AbstractController
 		if ($ratio > 1) ini_set('max_execution_time', '0');
 
 		//
+		// $fh = @fopen() 
+		// ( @ symbol supresses any php driven error message )
 		//
-		$fh = @fopen($fileName, 'rb');
+		$fh = fopen($fileName, 'rb');
 		if ( $fh ){
 
 			$nbBuffer = 0;
@@ -439,6 +441,7 @@ class BookController extends AbstractController
 
 			if (!feof($fh)) {
 				passthru('echo "Erreur: fread() a échoué ..." >>books/sorties_console 2>&1', $errCode);
+				return 0;
 			}
 
 			fclose($fh);
@@ -453,7 +456,7 @@ class BookController extends AbstractController
 		//$timeEnd = \microtime(true);
 
 		$duration = \microtime(true) - $timeStart;
-		passthru('echo \'duration:' . $duration . '\' >>books/sorties_console 2>&1', $errCode );
+		passthru('echo \'Parsing duration:' . $duration . '\' >>books/sorties_console 2>&1', $errCode );
 
 		// dd($timeStart, $timeEnd, $timeEnd - $timeStart);
 		return($duration);
