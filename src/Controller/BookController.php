@@ -18,6 +18,12 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+define("XMLBUFFER", 65536);
+
+$bool=pcntl_async_signals(true);
+// dd($bool);
+
 /**
  * @Route("/book")
  */
@@ -42,12 +48,16 @@ class BookController extends AbstractController
 
 	private $nbBookWords,
 			$nbBookSentences,
-			$nbBookParagraphs;
+			$nbBookParagraphs,
+			$xmlFileSize,
+			$iCurrentBuffer;
 
 	private $book;
 
+
 	public function __construct()
 	{
+		$this->xmlFileSize = 0;
 	}
 
     /**
@@ -70,6 +80,11 @@ class BookController extends AbstractController
 		//
 		passthru('echo \'111 entrée fonction new 111\' >>books/sorties_console 2>&1', $errCode );
 	
+		if ( $this->xmlFileSize != 0 ){
+			// parsing process already running
+			dd("bada boum", $this->xmlFileSize);
+		}
+
         $book = new Book();
 		$form = $this->createForm(BookType::class, $book);
 		
@@ -87,8 +102,8 @@ class BookController extends AbstractController
 			passthru('echo \'request>files>book>origname: NULL\' >>books/sorties_console 2>&1', $errCode );
 		}
 		else{
-			passthru('echo \'request>files>book>origname:' . $debug1['odtBookFile']['file']->getClientOriginalName() . '\' >>books/sorties_console 2>&1', $errCode );
-			passthru('echo \'request>files>book>pathname:' . $debug1['odtBookFile']['file']->getPathName() . '\' >>books/sorties_console 2>&1', $errCode );
+			passthru('echo \'request>files>book>origname: ' . $debug1['odtBookFile']['file']->getClientOriginalName() . '\' >>books/sorties_console 2>&1', $errCode );
+			passthru('echo \'request>files>book>pathname: ' . $debug1['odtBookFile']['file']->getPathName() . '\' >>books/sorties_console 2>&1', $errCode );
 			// dd($debug1['odtBookFile']['file']->getPathName());
 		}
 
@@ -100,6 +115,10 @@ class BookController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 			// $entityManager = $this->getDoctrine()->getManager();
+
+
+			// did the parsing process begin ??
+
 
 			//
 			passthru('echo \'444 formulaire soumis et valide 444\' >>books/sorties_console 2>&1', $errCode );
@@ -134,25 +153,30 @@ class BookController extends AbstractController
 			//
 			// unix cmd
 			passthru('mkdir -v ' . $dirName . ' >>books/sorties_console 2>&1', $errCode );
-			
 			if (!$errCode){
 				passthru('unzip -q '. $fileName . ' -d ' . $dirName . ' >>books/sorties_console 2>&1', $errCode);
-				
-				//
-				// xml parsing !
-				$this->book = $book;
-				$this->book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
-							->setNbParagraphs($this->nbBookParagraphs)
-							->setNbSentences($this->nbBookSentences)
-							->setNbWords($this->nbBookWords)
-							;
-				
-				$entityManager->persist($this->book);
-				$entityManager->flush();
-				
-				return $this->redirectToRoute('book_show', [
-					'slug' => $this->book->getSlug()
-					]);
+				if (!$errCode){
+
+					//
+					// xml parsing !
+
+
+					$this->book = $book;
+					$this->book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
+								->setNbParagraphs($this->nbBookParagraphs)
+								->setNbSentences($this->nbBookSentences)
+								->setNbWords($this->nbBookWords)
+								;
+					
+					$entityManager->persist($this->book);
+					$entityManager->flush();
+
+
+					
+					return $this->redirectToRoute('book_show', [
+						'slug' => $this->book->getSlug()
+						]);
+				}
 			}
         }
 
@@ -430,12 +454,12 @@ class BookController extends AbstractController
 		$this->nbBookParagraphs = 0;
 
 		// get file size
-		$fileSize = filesize($fileName);
-		$ratio = $fileSize / 16384;
+		$this->xmlFileSize = filesize($fileName);
+		$ratio = $this->xmlFileSize / XMLBUFFER;
 
 		// unix cmd
 		// 
-		passthru('echo \'$fileName:' . $fileName . ' ~ $fileSize:' . $fileSize . '\' >>books/sorties_console 2>&1', $errCode );
+		passthru('echo \'$fileName:' . $fileName . ' ~ $fileSize:' . $this->xmlFileSize . '\' >>books/sorties_console 2>&1', $errCode );
 		passthru('echo \'ratio:' . $ratio . '\' >>books/sorties_console 2>&1', $errCode );
 
 
@@ -444,7 +468,7 @@ class BookController extends AbstractController
 
 		//
 		// $fh = @fopen() 
-		// ( @ symbol supresses any php driven error message )
+		// ( @ symbol supresses any php driven error message !? )
 		//
 		$fh = fopen($fileName, 'rb');
 		if ( $fh ){
@@ -460,13 +484,14 @@ class BookController extends AbstractController
 			xml_set_character_data_handler($this->parser, [$this, "character_data_handler"]);
 
 			// fread vs fgets !! ??
-			while (($buffer = fread($fh, 16384)) != false){
+			while (($buffer = fread($fh, XMLBUFFER)) != false){
 				//
 				// 
 				$nbBuffer++;
 				xml_parse($this->parser, $buffer);
-				passthru('echo \'n° fread_buffer:' . $nbBuffer . '\' >>books/sorties_console 2>&1', $errCode );
 
+				sleep(1); // ?? cf err 503 !
+				passthru('echo \'n° fread_buffer:' . $nbBuffer . '\' >>books/sorties_console 2>&1', $errCode );
 				//
 				//
 			}
@@ -506,8 +531,8 @@ class BookController extends AbstractController
 			// split the paragraph using the punctuation signs [.?!]
 			// with a negative look-behind feature to exclude :
 			// 			- roman numbers (example CXI.)
-			//			- S. as St, Saint
 			//			- ordered list ( 1. aaa 2. bbb 3. ccc etc)
+			//			- S. as St, Saint
 			//
 			$sentences = preg_split('/(?<![IVXLCM1234567890S].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
 			if ($sentences){

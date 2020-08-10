@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ nb }}{% endblock %}
+
+{% block body %}
+
+<div>
+    <h2>
+    {{ nb }}
+    </h2>
+    <div class="progress">
+        <div class="progress-bar role="progressbar" aria-valuenow="{{ nb }}" aria-valuemin="0" aria-valuemax="100""></div>
+    </div>
+
+
+</div>
+
+{% endblock %}
+
