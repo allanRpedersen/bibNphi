@@ -30,7 +30,13 @@ class BookParagraph
      */
 	private $sentences;
 	
-	private $matchingSentences;
+    private $matchingSentences;
+    
+    // private $matchingSentence = [
+    //     'book'=> $this->book,
+    //     'sentence' => "",
+    //     'iNeedle' => NULL,
+    // ];
 
     public function __construct()
     {
@@ -93,26 +99,27 @@ class BookParagraph
 
 		foreach($this->sentences as $sentence){
 
-			//
-			$iNeedle = mb_stripos($sentence->getContent(), $stringToSearch, 0, mb_detect_encoding($sentence->getContent()));
+            //
+            $content = $sentence->getContent();
+
+            $encoding = mb_detect_encoding($content);
+            $length = mb_strlen($stringToSearch);
+
+			$iNeedle = mb_stripos($content, $stringToSearch, 0, $encoding);
 
 			if(FALSE !== $iNeedle){
 
-				$this->matchingSentences->add($sentence);
+                $tmp = mb_substr($content, 0, $iNeedle, $encoding);
+                $tmp .= '<strong>';
+                $tmp .= mb_substr($content, $iNeedle, $length, $encoding);
+                $tmp .= '</strong>';
+                $tmp .= mb_substr($content, $iNeedle + $length, NULL, $encoding);
 
+                $sentence->setContent($tmp);
+                
+				$this->matchingSentences->add([$iNeedle, $sentence]);
 
 			}
-			
-			// if (strlen(stristr($sentence->getContent(), $stringToSearch )) > 0 ){
-			// }
-			
-			// split the paragraph using the punctuation signs [.?!]
-			// with a negative look-behind feature to exclude roman numbers (example CXI.)
-			//
-			// $sentences = preg_split('/(?<![IVXLC].)(?<=[.?!])\s+/', $paragraph, -1, PREG_SPLIT_DELIM_CAPTURE);
-			// if ($sentences){
-				// 	foreach ($sentences as $sentence ){
-					
 
 		}
 		return $this->matchingSentences;

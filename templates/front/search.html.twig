@@ -4,14 +4,28 @@
 
 {% block body %}
 	<div class="container mt1">
-		<h1>Recherche de : {{ string }}</h1>
-		<h2>dans la liste de livres suivante :</h2>
-		{% for book in books %}
+	
+		<h3>Recherche de : {{ string }} dans la liste de livres suivante :</h3>
+		{% for book in bookList %}
 			<p>{{book.title}} - {{book.author.lastName}}</p>
 		{% endfor %}
-		<h3>{{sentences|length}} occurences repérées :</h3>
+		<hr>
+		{# <h3>{{sentences|length}} occurences repérées !!</h3> #}
+		{% set book_slug = "" %}
 		{% for sentence in sentences %}
-			<p>{{sentence.content}}</p>
+
+		<div class="row">
+			<div class="col-md-4">
+			{% if sentence.book.slug != book_slug %}
+				{% set book_slug = sentence.book.slug %}
+				<h4>{{ sentence.book.title }} - {{ sentence.book.author.lastName}}</h4>
+			{% endif %}
+			</div>
+			<div class="col-md-8">
+				<p>{{sentence['sentence'][1].content|raw}}</p>
+			</div>
+		</div>
+
 		{% endfor %}
 	</div>
 {% endblock %}

@@ -11,8 +11,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+
 class FrontController extends AbstractController
 {
+
+
+
+
+
     /**
      * @Route("/", name="front")
 	 * @return Response
@@ -21,7 +27,15 @@ class FrontController extends AbstractController
     {
 		$authors = [];
 		$bookList = [];
-		$matchingSentences =[];
+		
+		// $matchingSentences =[];
+		$matchingSentences = [];
+
+		$matchingSentence = [
+			'book' => NULL,
+			'sentence' => NULL,
+			'iNeedle' => 0,
+		];
 
 		$search = new SentenceSearch();
 		$form = $this->createForm(SentenceSearchType::class, $search);
@@ -42,9 +56,13 @@ class FrontController extends AbstractController
 					// echo "<script>alert(\"(Vous allez effectuer une recherche sur toute la bibliothèque ??-)\")</script>";
 					$bookList = $bookRepository->findAll();
 
-					// std execution time is 30 sec.
-					// set execution time to infinite !!
-					ini_set('max_execution_time', '0');
+								// ===================================+
+								// std execution time is 30 sec.      |
+								// set execution time to infinite !!  |
+								//                                    |
+								ini_set('max_execution_time', '0'); //|
+								//                                    |
+								// ===================================+
 
 				}
 				
@@ -56,11 +74,9 @@ class FrontController extends AbstractController
 						$books = $bookRepository->findByAuthor($author);
 						foreach($books as $book) $bookList[] = $book;
 					}
-					// dd('bb', $bookList);
-
+					
 				}
 
-			
 			}
 			else {
 				
@@ -69,28 +85,40 @@ class FrontController extends AbstractController
 				
 			}
 			
-			// dd($bookList);
 			// watabout a spinner ?
 
+
 			foreach($bookList as $book){
+
 				$paragraphs = $book->getBookParagraphs();
 
 				foreach($paragraphs as $paragraph){
 					$sentences = $paragraph->getMatchingSentences($stringToSearch);
+
 					if ($sentences)
 						foreach($sentences as $sentence){
-							$matchingSentences[] = $sentence;
+
+							$matchingSentence['book'] = $book;
+							$matchingSentence['sentence'] = $sentence;
+							// $matchingSentence['iNeedle'] = $sentence[0];
+
+							$matchingSentences[] = $matchingSentence;
+
+							// $matchingSentences[] = $sentence;
 						}
 				}
 			}
 
+
+
 			return $this->render('front/search.html.twig', [
 				'string' => $stringToSearch,
-				'books' => $bookList,
+				'bookList' => $bookList,
 				'sentences' => $matchingSentences,
+				// 'books'	=> $matchingBooks,
+
 			]);
 
-			// dd($search);
 		}
 
         return $this->render('front/index.html.twig', [
