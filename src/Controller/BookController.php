@@ -19,7 +19,7 @@ use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-define("XMLBUFFER", 65536);
+define("XML_PARSING_BUFFER_SIZE", 65536);
 
 $bool=pcntl_async_signals(true);
 // dd($bool);
@@ -455,7 +455,7 @@ class BookController extends AbstractController
 
 		// get file size
 		$this->xmlFileSize = filesize($fileName);
-		$ratio = $this->xmlFileSize / XMLBUFFER;
+		$ratio = $this->xmlFileSize / XML_PARSING_BUFFER_SIZE;
 
 		// unix cmd
 		// 
@@ -484,7 +484,7 @@ class BookController extends AbstractController
 			xml_set_character_data_handler($this->parser, [$this, "character_data_handler"]);
 
 			// fread vs fgets !! ??
-			while (($buffer = fread($fh, XMLBUFFER)) != false){
+			while (($buffer = fread($fh, XML_PARSING_BUFFER_SIZE)) != false){
 				//
 				// 
 				$nbBuffer++;
