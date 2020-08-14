@@ -20,7 +20,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
-$bool=pcntl_async_signals(true);
+// $bool=pcntl_async_signals(true);
+
 // dd($bool);
 // define("XML_PARSING_BUFFER_SIZE", 65536);
 
