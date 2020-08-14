@@ -19,10 +19,10 @@ use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-define("XML_PARSING_BUFFER_SIZE", 65536);
 
 $bool=pcntl_async_signals(true);
 // dd($bool);
+// define("XML_PARSING_BUFFER_SIZE", 65536);
 
 /**
  * @Route("/book")
@@ -122,8 +122,9 @@ class BookController extends AbstractController
 
 			//
 			passthru('echo \'444 formulaire soumis et valide 444\' >>books/sorties_console 2>&1', $errCode );
-			// dd($request);
-			//
+			// dd($request->files->get('book')->getClientOriginalName());
+			// $request->files->get('book')->getClientOriginalName()
+
 			$odtBookFile = $book->getOdtBookFile();
 			$odtOriginalName = $odtBookFile->getClientOriginalName();
 
@@ -455,7 +456,7 @@ class BookController extends AbstractController
 
 		// get file size
 		$this->xmlFileSize = filesize($fileName);
-		$ratio = $this->xmlFileSize / XML_PARSING_BUFFER_SIZE;
+		$ratio = $this->xmlFileSize / 65536;
 
 		// unix cmd
 		// 
@@ -484,7 +485,7 @@ class BookController extends AbstractController
 			xml_set_character_data_handler($this->parser, [$this, "character_data_handler"]);
 
 			// fread vs fgets !! ??
-			while (($buffer = fread($fh, XML_PARSING_BUFFER_SIZE)) != false){
+			while (($buffer = fread($fh, 65536)) != false){
 				//
 				// 
 				$nbBuffer++;
