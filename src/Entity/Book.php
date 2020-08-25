@@ -221,7 +221,7 @@ class Book
      * must be able to accept an instance of 'File' as the bundle will inject one here
      * during Doctrine hydration.
      *
-     * @param File|\Symfony\Component\HttpFoundation\File\UploadedFile|null $odtBookFile
+     * @param \Symfony\Component\HttpFoundation\File\UploadedFile | File | null $odtBookFile
      */
     public function setOdtBookFile(?File $odtBookFile = null): void
     {
@@ -234,6 +234,7 @@ class Book
         }
     }
 
+    
     public function getOdtBookFile(): ?File
     {
         return $this->odtBookFile;

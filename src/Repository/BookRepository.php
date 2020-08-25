@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Book;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Query;
 
 /**
  * @method Book|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,14 +21,12 @@ class BookRepository extends ServiceEntityRepository
     }
 
     /**
-	 * 
-	 * 
 	 * findByTitle
 	 * 
 	 * @param string $orderBy
      * @return Book[] Returns an array of Book objects
      */
-    public function findByTitle($orderBy='ASC')
+    public function findByTitle($orderBy='ASC') : array
     {
         return $this->createQueryBuilder('t')
             //->andWhere('t.title = :val')
@@ -36,6 +35,23 @@ class BookRepository extends ServiceEntityRepository
             //->setMaxResults(10)
             ->getQuery()
             ->getResult()
+        ;
+    }
+
+    /**
+	 * findByTitleQuery
+	 * 
+	 * @param string $orderBy
+     * @return Query Returns a query
+     */
+    public function findByTitleQuery($orderBy='ASC') : Query
+    {
+        return $this->createQueryBuilder('t')
+            //->andWhere('t.title = :val')
+            //->setParameter('val', $value)
+            ->orderBy('t.title', $orderBy)
+            //->setMaxResults(10)
+            ->getQuery()
         ;
     }
 

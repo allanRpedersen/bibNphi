@@ -5,10 +5,12 @@ namespace App\Controller;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Form\BookType;
+use App\Service\XmlParser;
 use App\Entity\BookSentence;
 use App\Entity\BookParagraph;
 use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,7 +20,6 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 use Vich\UploaderBundle\Templating\Helper\UploaderHelper;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 
 // $bool=pcntl_async_signals(true);
 
@@ -64,10 +65,16 @@ class BookController extends AbstractController
     /**
      * @Route("/", name="book_index", methods={"GET"})
      */
-    public function index(BookRepository $bookRepository): Response
+    public function index(Request $request, PaginatorInterface $paginator, BookRepository $bookRepository): Response
     {
+		$books = $paginator->paginate(
+			$bookRepository->findByTitleQuery(),
+			$request->query->getInt('page', 1),
+			9
+		);
+
         return $this->render('book/index.html.twig', [
-			'books' => $bookRepository->findByTitle(),
+			'books' => $books,
 		]);
     }
 
@@ -75,7 +82,10 @@ class BookController extends AbstractController
      * @Route("/new", name="book_new", methods={"GET","POST"})
 	 * @IsGranted("ROLE_USER")
      */
-    public function new(Request $request, EntityManagerInterface $entityManager, UploaderHelper $uploaderHelper ): Response
+	public function new( Request $request, 
+						 EntityManagerInterface $entityManager,
+						 UploaderHelper $uploaderHelper,
+						 XmlParser $xmlParser ): Response
     {
 
 		//
@@ -163,6 +173,7 @@ class BookController extends AbstractController
 					// xml parsing !
 
 
+					
 					$this->book = $book;
 					$this->book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
 								->setNbParagraphs($this->nbBookParagraphs)

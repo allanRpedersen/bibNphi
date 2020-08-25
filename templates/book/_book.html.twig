@@ -1,0 +1,10 @@
+<div class="card mb-3">
+    <div class="card-body book-card">
+        <p class="card-title">
+            <a href="{{ path('book_show', { 'slug' : book.slug }) }}">
+            {{ book.title }}
+            </a>
+        </p>
+        <p class="card-text">{{ author.lastName }}, {{ author.firstName }}</p>
+    </div>
+</div>

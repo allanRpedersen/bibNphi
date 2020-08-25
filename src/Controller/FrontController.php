@@ -15,10 +15,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class FrontController extends AbstractController
 {
 
-
-
-
-
     /**
      * @Route("/", name="front")
 	 * @return Response
@@ -115,7 +111,6 @@ class FrontController extends AbstractController
 				'string' => $stringToSearch,
 				'bookList' => $bookList,
 				'sentences' => $matchingSentences,
-				// 'books'	=> $matchingBooks,
 
 			]);
 

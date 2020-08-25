@@ -104,7 +104,6 @@ class UserController extends AbstractController
 	 * Mise à jour du mot de passe
 	 * 
 	 * @Route ("/user/updatepwd", name="user_updatepwd")
-	 * @isGranted("ROLE_USER")
 	 * 
 	 * @return Response
 	 */

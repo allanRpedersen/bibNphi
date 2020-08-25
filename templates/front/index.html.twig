@@ -1,47 +1,38 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Bienvenue !!{% endblock %}
+{% block title %}Accueil{% endblock %}
 
 {% block body %}
-
-<div class="container mt-3 align-bottom">
-	<h3>Rechercher ...</h3>
-	{{ form_start(form) }}
-	{{ form_row(form.books)}}
-	{{ form_row(form.authors)}}
-	{{ form_row(form.stringToSearch)}}
-	{# <div class="form-row align-items-end">
-		<div class="col-md-10">
-		</div>
-		<div class="col">
-		</div>
-	</div> #}
-	{# <button id="main_search" onclick="showSpinner()" class="btn btn-primary" type="button">Rechercher</button> #}
-	<button id="search_button" class="btn btn-primary" onclick="showSpinner()">
-		Rechercher
-	</button>
-	{{ form_end(form) }}	
-</div>
-<div class="container mt-5">
-	<h1 class="my-2 text-center">Bibliothèque</h1>
-
-	<div class="row">
-		<div class="col">
+<div class="row">
+	<div class="col-md-10 mx-2">
+		<h1 class="text-center mt-3">Bibliothèque</h1>
+		<div class="row">
 			{% for author in authors %}
-			<div class="row">
-				<div class="col">
-					<h3>{{author.lastName}}, {{author.firstName}}</h3>
-				</div>
-				<div class="col">
-					{% for book in author.books %}
-					<h5><a class="btn btn-info" href="{{ path('book_show', {'slug': book.slug}) }}">{{ book.title }}</a></h5>
-					{% endfor %}
-				</div>
-			</div>
-			{% endfor %}
+				{% for book in author.books %}
+					<div class="col-md-3">
+					{% include 'book/_book.html.twig' %}
+					</div>
+				{% endfor %}
+			{% endfor %}	
 		</div>
 	</div>
+	<div class="col mx-2">
+
+		<h3 class="mt-3">Rechercher ...</h3>
+		{{ form_start(form) }}
+		{{ form_row(form.books)}}
+		{{ form_row(form.authors)}}
+		{{ form_row(form.stringToSearch)}}
+
+		<button id="search_button" class="btn btn-primary" onclick="showSpinner()">
+			Rechercher
+		</button>
+		{{ form_end(form) }}	
+	</div>
+		
+
 </div>
+
 {% endblock %}
 
 {% block javascripts %}
