@@ -1,10 +1,22 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
+	<div class="row">
+		<div class="col-md-7">
+	    {{ form_row(form.title, {'label': 'titre'}) }}
+		</div>
+		<div class="col-md-4">
+		{{ form_row(form.author, {'label': 'auteur.e'}) }}
+		</div>
+		<div class="col">
+		{{ form_row(form.publishedYear, {'label': 'publié en'}) }}
+		</div>
+	</div>
+	{{ form_row(form.summary, {'label': 'résumé'}) }}
+	{{ form_row(form.odtBookFile, {'label': 'fichier format odt'})}}
 	<button class="btn btn-info">
 		{{ button_label|default('Ajout') }}
 	</button>
+{{ form_end(form) }}
 
 	{# <span hidden="true" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
 		<span hidden="true" class="sr-only">Loading...</span> #}
 
-{{ form_end(form) }}

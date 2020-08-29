@@ -6,6 +6,7 @@ use App\Entity\SentenceSearch;
 use App\Form\SentenceSearchType;
 use App\Repository\BookRepository;
 use App\Repository\AuthorRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -19,7 +20,7 @@ class FrontController extends AbstractController
      * @Route("/", name="front")
 	 * @return Response
      */
-    public function index(Request $request, BookRepository $bookRepository, AuthorRepository $authorRepository)
+    public function index(Request $request, PaginatorInterface $paginator, BookRepository $bookRepository, AuthorRepository $authorRepository)
     {
 		$authors = [];
 		$bookList = [];
@@ -117,7 +118,12 @@ class FrontController extends AbstractController
 		}
 
         return $this->render('front/index.html.twig', [
-            'authors' => $authorRepository->findByLastName(),
+			'authors' => $authorRepository->findByLastName(),
+			// 'authors' => $paginator->paginate(
+			// 			$authorRepository->findByLastNameQuery(),
+			// 			$request->query->getInt('page', 1),
+			// 			3
+			// ),
 			'form' => $form->createView(),
         ]);
     }

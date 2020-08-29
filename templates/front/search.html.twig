@@ -6,9 +6,11 @@
 	<div class="container mt1">
 	
 		<h3>Recherche de : {{ string }} dans la liste de livres suivante :</h3>
+		<p>
 		{% for book in bookList %}
-			<p>{{book.title}} - {{book.author.lastName}}</p>
+			{{book.title}} - {{book.author.lastName}} , 
 		{% endfor %}
+		</p>
 		<hr>
 		{# <h3>{{sentences|length}} occurences repérées !!</h3> #}
 		{% set book_slug = "" %}

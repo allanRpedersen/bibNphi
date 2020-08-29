@@ -3,8 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Author;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @method Author|null find($id, $lockMode = null, $lockVersion = null)
@@ -37,6 +38,25 @@ class AuthorRepository extends ServiceEntityRepository
             //->setMaxResults(10)
             ->getQuery()
             ->getResult()
+        ;
+    }
+
+	/**
+	 * 
+	 * 
+	 * findByLastNameQuery
+	 * 
+	 * @param string $orderBy
+     * @return Query Returns a query
+     */
+    public function findByLastNameQuery($orderBy='ASC') : Query
+    {
+        return $this->createQueryBuilder('t')
+            //->andWhere('t.lastName = :val')
+            //->setParameter('val', $value)
+            ->orderBy('t.lastName', $orderBy)
+            //->setMaxResults(10)
+            ->getQuery()
         ;
     }
 

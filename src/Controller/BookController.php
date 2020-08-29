@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Monolog\Logger;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Form\BookType;
@@ -9,6 +10,7 @@ use App\Service\XmlParser;
 use App\Entity\BookSentence;
 use App\Entity\BookParagraph;
 use App\Repository\BookRepository;
+use Monolog\Handler\StreamHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,10 +58,14 @@ class BookController extends AbstractController
 
 	private $book;
 
+	private $logger;
+
 
 	public function __construct()
 	{
 		$this->xmlFileSize = 0;
+		$this->logger = new Logger('bibnphi');
+		$this->logger->pushHandler( new StreamHandler(__DIR__ . '/bibnphi.log', Logger::DEBUG) );
 	}
 
     /**
@@ -67,14 +73,12 @@ class BookController extends AbstractController
      */
     public function index(Request $request, PaginatorInterface $paginator, BookRepository $bookRepository): Response
     {
-		$books = $paginator->paginate(
-			$bookRepository->findByTitleQuery(),
-			$request->query->getInt('page', 1),
-			9
-		);
-
         return $this->render('book/index.html.twig', [
-			'books' => $books,
+			'books' => $paginator->paginate(
+						$bookRepository->findByTitleQuery(),
+						$request->query->getInt('page', 1),
+						7
+			),
 		]);
     }
 
@@ -89,6 +93,7 @@ class BookController extends AbstractController
     {
 
 		//
+		$this->logger->info('Entrée fonction BookController->new()');
 		passthru('echo \'111 entrée fonction new 111\' >>books/sorties_console 2>&1', $errCode );
 	
 		if ( $this->xmlFileSize != 0 ){
@@ -140,6 +145,7 @@ class BookController extends AbstractController
 			$odtOriginalName = $odtBookFile->getClientOriginalName();
 
 			//
+			$this->logger->debug('odtOriginalName : ' . $odtOriginalName );
 			passthru('echo \'== ' . $odtOriginalName . ' ==\' >>books/sorties_console 2>&1', $errCode );
 
 			$book->setNbParagraphs(0)
@@ -150,7 +156,9 @@ class BookController extends AbstractController
 
             $entityManager->persist($book);
 			$entityManager->flush();
-			
+
+			$this->logger->debug('(after flush, odtOriginalName : ' . $odtOriginalName );
+
 			$localPath = $uploaderHelper->asset($book, 'odtBookFile'); // $localPath is set once the entity is persisted ..
 			$fileName = \pathinfo($localPath, PATHINFO_FILENAME);
 			$fileExt = \pathinfo($localPath, PATHINFO_EXTENSION);
@@ -172,8 +180,6 @@ class BookController extends AbstractController
 					//
 					// xml parsing !
 
-
-					
 					$this->book = $book;
 					$this->book->setParsingTime($this->parseXmlContent($dirName . '/content.xml'))
 								->setNbParagraphs($this->nbBookParagraphs)
@@ -183,8 +189,6 @@ class BookController extends AbstractController
 					
 					$entityManager->persist($this->book);
 					$entityManager->flush();
-
-
 					
 					return $this->redirectToRoute('book_show', [
 						'slug' => $this->book->getSlug()
